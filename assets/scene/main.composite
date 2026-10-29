@@ -61,20 +61,20 @@
         "512": {
           "json": {
             "position": {
-              "x": 32,
-              "y": -0.15000000596046448,
-              "z": 9
-            },
-            "scale": {
-              "x": 60,
-              "y": 0.30000001192092896,
-              "z": 16
+              "x": 80,
+              "y": 8,
+              "z": 152
             },
             "rotation": {
               "x": 0,
               "y": 0,
               "z": 0,
               "w": 1
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
             },
             "parent": 0
           }
@@ -82,20 +82,20 @@
         "513": {
           "json": {
             "position": {
-              "x": 32,
+              "x": 80,
               "y": 0.5,
-              "z": 40
-            },
-            "scale": {
-              "x": 56,
-              "y": 0.30000001192092896,
-              "z": 40
+              "z": 80
             },
             "rotation": {
               "x": 0,
               "y": 0,
               "z": 0,
               "w": 1
+            },
+            "scale": {
+              "x": 136,
+              "y": 0.30000001192092896,
+              "z": 136
             },
             "parent": 0
           }
@@ -103,85 +103,84 @@
         "514": {
           "json": {
             "position": {
-              "x": 32,
-              "y": 2,
-              "z": 12
-            },
-            "scale": {
-              "x": 3.799999952316284,
-              "y": 3.799999952316284,
-              "z": 0.07999999821186066
+              "x": 80,
+              "y": 8.03499984741211,
+              "z": 150
             },
             "rotation": {
               "x": 0,
               "y": 0,
               "z": 0,
               "w": 1
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
             },
             "parent": 0
           }
         },
-        "515": {
+        "518": {
           "json": {
             "position": {
-              "x": 29.799999237060547,
-              "y": 2.0999999046325684,
-              "z": 12
-            },
-            "scale": {
-              "x": 0.3499999940395355,
-              "y": 4.199999809265137,
-              "z": 0.44999998807907104
+              "x": 80,
+              "y": 10.300000190734863,
+              "z": 150
             },
             "rotation": {
               "x": 0,
               "y": 0,
               "z": 0,
               "w": 1
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
             },
             "parent": 0
           }
-        },
-        "516": {
+        }
+      }
+    },
+    {
+      "name": "core::Billboard",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {},
+        "serializationType": "protocol-buffer",
+        "protocolBuffer": "PBBillboard"
+      },
+      "data": {
+        "518": {
           "json": {
-            "position": {
-              "x": 34.20000076293945,
-              "y": 2.0999999046325684,
-              "z": 12
-            },
-            "scale": {
-              "x": 0.3499999940395355,
-              "y": 4.199999809265137,
-              "z": 0.44999998807907104
-            },
-            "rotation": {
-              "x": 0,
-              "y": 0,
-              "z": 0,
-              "w": 1
-            },
-            "parent": 0
+            "billboardMode": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "core::GltfContainer",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {},
+        "serializationType": "protocol-buffer",
+        "protocolBuffer": "PBGltfContainer"
+      },
+      "data": {
+        "512": {
+          "json": {
+            "src": "assets/Models/spectator-stage.glb",
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
-        "517": {
+        "514": {
           "json": {
-            "position": {
-              "x": 32,
-              "y": 4.25,
-              "z": 12
-            },
-            "scale": {
-              "x": 4.75,
-              "y": 0.3499999940395355,
-              "z": 0.44999998807907104
-            },
-            "rotation": {
-              "x": 0,
-              "y": 0,
-              "z": 0,
-              "w": 1
-            },
-            "parent": 0
+            "src": "assets/Models/sea-circle.glb",
+            "visibleMeshesCollisionMask": 0,
+            "invisibleMeshesCollisionMask": 0
           }
         }
       }
@@ -195,23 +194,6 @@
         "protocolBuffer": "PBMaterial"
       },
       "data": {
-        "512": {
-          "json": {
-            "material": {
-              "$case": "pbr",
-              "pbr": {
-                "albedoColor": {
-                  "r": 0.8199999928474426,
-                  "g": 0.6899999976158142,
-                  "b": 0.4300000071525574,
-                  "a": 1
-                },
-                "metallic": 0,
-                "roughness": 0.8999999761581421
-              }
-            }
-          }
-        },
         "513": {
           "json": {
             "material": {
@@ -221,81 +203,6 @@
                   "r": 0.03500000014901161,
                   "g": 0.38999998569488525,
                   "b": 0.5699999928474426,
-                  "a": 1
-                },
-                "metallic": 0,
-                "roughness": 0.8999999761581421
-              }
-            }
-          }
-        },
-        "514": {
-          "json": {
-            "material": {
-              "$case": "pbr",
-              "pbr": {
-                "albedoColor": {
-                  "r": 0.07999999821186066,
-                  "g": 0.6499999761581421,
-                  "b": 0.75,
-                  "a": 0.3799999952316284
-                },
-                "emissiveColor": {
-                  "r": 0.07999999821186066,
-                  "g": 0.800000011920929,
-                  "b": 0.8500000238418579
-                },
-                "transparencyMode": 2,
-                "metallic": 0,
-                "roughness": 0.800000011920929,
-                "emissiveIntensity": 1
-              }
-            }
-          }
-        },
-        "515": {
-          "json": {
-            "material": {
-              "$case": "pbr",
-              "pbr": {
-                "albedoColor": {
-                  "r": 0.03999999910593033,
-                  "g": 0.20000000298023224,
-                  "b": 0.27000001072883606,
-                  "a": 1
-                },
-                "metallic": 0,
-                "roughness": 0.8999999761581421
-              }
-            }
-          }
-        },
-        "516": {
-          "json": {
-            "material": {
-              "$case": "pbr",
-              "pbr": {
-                "albedoColor": {
-                  "r": 0.03999999910593033,
-                  "g": 0.20000000298023224,
-                  "b": 0.27000001072883606,
-                  "a": 1
-                },
-                "metallic": 0,
-                "roughness": 0.8999999761581421
-              }
-            }
-          }
-        },
-        "517": {
-          "json": {
-            "material": {
-              "$case": "pbr",
-              "pbr": {
-                "albedoColor": {
-                  "r": 0.10999999940395355,
-                  "g": 0.7699999809265137,
-                  "b": 0.75,
                   "a": 1
                 },
                 "metallic": 0,
@@ -315,15 +222,6 @@
         "protocolBuffer": "PBMeshCollider"
       },
       "data": {
-        "512": {
-          "json": {
-            "collisionMask": 2,
-            "mesh": {
-              "$case": "box",
-              "box": {}
-            }
-          }
-        },
         "513": {
           "json": {
             "collisionMask": 2,
@@ -344,57 +242,7 @@
         "protocolBuffer": "PBMeshRenderer"
       },
       "data": {
-        "512": {
-          "json": {
-            "mesh": {
-              "$case": "box",
-              "box": {
-                "uvs": []
-              }
-            }
-          }
-        },
         "513": {
-          "json": {
-            "mesh": {
-              "$case": "box",
-              "box": {
-                "uvs": []
-              }
-            }
-          }
-        },
-        "514": {
-          "json": {
-            "mesh": {
-              "$case": "box",
-              "box": {
-                "uvs": []
-              }
-            }
-          }
-        },
-        "515": {
-          "json": {
-            "mesh": {
-              "$case": "box",
-              "box": {
-                "uvs": []
-              }
-            }
-          }
-        },
-        "516": {
-          "json": {
-            "mesh": {
-              "$case": "box",
-              "box": {
-                "uvs": []
-              }
-            }
-          }
-        },
-        "517": {
           "json": {
             "mesh": {
               "$case": "box",
@@ -421,7 +269,7 @@
       "data": {
         "512": {
           "json": {
-            "value": "Shore Lobby"
+            "value": "Wooden Spectator Stage"
           }
         },
         "513": {
@@ -434,19 +282,39 @@
             "value": "Sea Portal"
           }
         },
-        "515": {
+        "518": {
           "json": {
-            "value": "Portal Left"
+            "value": "Sea Circle Instructions"
           }
-        },
-        "516": {
+        }
+      }
+    },
+    {
+      "name": "core::TextShape",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {},
+        "serializationType": "protocol-buffer",
+        "protocolBuffer": "PBTextShape"
+      },
+      "data": {
+        "518": {
           "json": {
-            "value": "Portal Right"
-          }
-        },
-        "517": {
-          "json": {
-            "value": "Portal Crown"
+            "text": "SEA ARENA\nSTEP INTO THE CIRCLE",
+            "fontSize": 3,
+            "textAlign": 4,
+            "outlineWidth": 0.15000000596046448,
+            "outlineColor": {
+              "r": 0.009999999776482582,
+              "g": 0.05000000074505806,
+              "b": 0.07000000029802322
+            },
+            "textColor": {
+              "r": 0.6000000238418579,
+              "g": 1,
+              "b": 0.9399999976158142,
+              "a": 1
+            }
           }
         }
       }
@@ -529,9 +397,7 @@
                   512,
                   513,
                   514,
-                  515,
-                  516,
-                  517
+                  518
                 ]
               },
               {
@@ -555,15 +421,7 @@
                 "children": []
               },
               {
-                "entity": 515,
-                "children": []
-              },
-              {
-                "entity": 516,
-                "children": []
-              },
-              {
-                "entity": 517,
+                "entity": 518,
                 "children": []
               }
             ]
@@ -936,7 +794,7 @@
         "0": {
           "json": {
             "name": "Ride A Fish",
-            "description": "Ride a growing fish, hunt smaller prey, and fill your Fish Index in a shared sea.",
+            "description": "Ride a growing fish in a 128m sea, collect stationary fish, and compete with rival riders. Watch from the wooden spectator stage.",
             "thumbnail": "assets/Images/autogenerated-thumbnail.png",
             "categories": [
               "game",
@@ -950,6 +808,10 @@
               "collection"
             ],
             "layout": {
+              "base": {
+                "x": 0,
+                "y": 0
+              },
               "parcels": [
                 {
                   "x": 0,
@@ -968,6 +830,30 @@
                   "y": 0
                 },
                 {
+                  "x": 4,
+                  "y": 0
+                },
+                {
+                  "x": 5,
+                  "y": 0
+                },
+                {
+                  "x": 6,
+                  "y": 0
+                },
+                {
+                  "x": 7,
+                  "y": 0
+                },
+                {
+                  "x": 8,
+                  "y": 0
+                },
+                {
+                  "x": 9,
+                  "y": 0
+                },
+                {
                   "x": 0,
                   "y": 1
                 },
@@ -984,6 +870,30 @@
                   "y": 1
                 },
                 {
+                  "x": 4,
+                  "y": 1
+                },
+                {
+                  "x": 5,
+                  "y": 1
+                },
+                {
+                  "x": 6,
+                  "y": 1
+                },
+                {
+                  "x": 7,
+                  "y": 1
+                },
+                {
+                  "x": 8,
+                  "y": 1
+                },
+                {
+                  "x": 9,
+                  "y": 1
+                },
+                {
                   "x": 0,
                   "y": 2
                 },
@@ -1000,6 +910,30 @@
                   "y": 2
                 },
                 {
+                  "x": 4,
+                  "y": 2
+                },
+                {
+                  "x": 5,
+                  "y": 2
+                },
+                {
+                  "x": 6,
+                  "y": 2
+                },
+                {
+                  "x": 7,
+                  "y": 2
+                },
+                {
+                  "x": 8,
+                  "y": 2
+                },
+                {
+                  "x": 9,
+                  "y": 2
+                },
+                {
                   "x": 0,
                   "y": 3
                 },
@@ -1014,37 +948,297 @@
                 {
                   "x": 3,
                   "y": 3
+                },
+                {
+                  "x": 4,
+                  "y": 3
+                },
+                {
+                  "x": 5,
+                  "y": 3
+                },
+                {
+                  "x": 6,
+                  "y": 3
+                },
+                {
+                  "x": 7,
+                  "y": 3
+                },
+                {
+                  "x": 8,
+                  "y": 3
+                },
+                {
+                  "x": 9,
+                  "y": 3
+                },
+                {
+                  "x": 0,
+                  "y": 4
+                },
+                {
+                  "x": 1,
+                  "y": 4
+                },
+                {
+                  "x": 2,
+                  "y": 4
+                },
+                {
+                  "x": 3,
+                  "y": 4
+                },
+                {
+                  "x": 4,
+                  "y": 4
+                },
+                {
+                  "x": 5,
+                  "y": 4
+                },
+                {
+                  "x": 6,
+                  "y": 4
+                },
+                {
+                  "x": 7,
+                  "y": 4
+                },
+                {
+                  "x": 8,
+                  "y": 4
+                },
+                {
+                  "x": 9,
+                  "y": 4
+                },
+                {
+                  "x": 0,
+                  "y": 5
+                },
+                {
+                  "x": 1,
+                  "y": 5
+                },
+                {
+                  "x": 2,
+                  "y": 5
+                },
+                {
+                  "x": 3,
+                  "y": 5
+                },
+                {
+                  "x": 4,
+                  "y": 5
+                },
+                {
+                  "x": 5,
+                  "y": 5
+                },
+                {
+                  "x": 6,
+                  "y": 5
+                },
+                {
+                  "x": 7,
+                  "y": 5
+                },
+                {
+                  "x": 8,
+                  "y": 5
+                },
+                {
+                  "x": 9,
+                  "y": 5
+                },
+                {
+                  "x": 0,
+                  "y": 6
+                },
+                {
+                  "x": 1,
+                  "y": 6
+                },
+                {
+                  "x": 2,
+                  "y": 6
+                },
+                {
+                  "x": 3,
+                  "y": 6
+                },
+                {
+                  "x": 4,
+                  "y": 6
+                },
+                {
+                  "x": 5,
+                  "y": 6
+                },
+                {
+                  "x": 6,
+                  "y": 6
+                },
+                {
+                  "x": 7,
+                  "y": 6
+                },
+                {
+                  "x": 8,
+                  "y": 6
+                },
+                {
+                  "x": 9,
+                  "y": 6
+                },
+                {
+                  "x": 0,
+                  "y": 7
+                },
+                {
+                  "x": 1,
+                  "y": 7
+                },
+                {
+                  "x": 2,
+                  "y": 7
+                },
+                {
+                  "x": 3,
+                  "y": 7
+                },
+                {
+                  "x": 4,
+                  "y": 7
+                },
+                {
+                  "x": 5,
+                  "y": 7
+                },
+                {
+                  "x": 6,
+                  "y": 7
+                },
+                {
+                  "x": 7,
+                  "y": 7
+                },
+                {
+                  "x": 8,
+                  "y": 7
+                },
+                {
+                  "x": 9,
+                  "y": 7
+                },
+                {
+                  "x": 0,
+                  "y": 8
+                },
+                {
+                  "x": 1,
+                  "y": 8
+                },
+                {
+                  "x": 2,
+                  "y": 8
+                },
+                {
+                  "x": 3,
+                  "y": 8
+                },
+                {
+                  "x": 4,
+                  "y": 8
+                },
+                {
+                  "x": 5,
+                  "y": 8
+                },
+                {
+                  "x": 6,
+                  "y": 8
+                },
+                {
+                  "x": 7,
+                  "y": 8
+                },
+                {
+                  "x": 8,
+                  "y": 8
+                },
+                {
+                  "x": 9,
+                  "y": 8
+                },
+                {
+                  "x": 0,
+                  "y": 9
+                },
+                {
+                  "x": 1,
+                  "y": 9
+                },
+                {
+                  "x": 2,
+                  "y": 9
+                },
+                {
+                  "x": 3,
+                  "y": 9
+                },
+                {
+                  "x": 4,
+                  "y": 9
+                },
+                {
+                  "x": 5,
+                  "y": 9
+                },
+                {
+                  "x": 6,
+                  "y": 9
+                },
+                {
+                  "x": 7,
+                  "y": 9
+                },
+                {
+                  "x": 8,
+                  "y": 9
+                },
+                {
+                  "x": 9,
+                  "y": 9
                 }
-              ],
-              "base": {
-                "x": 0,
-                "y": 0
-              }
+              ]
             },
             "silenceVoiceChat": false,
             "disablePortableExperiences": false,
             "spawnPoints": [
               {
-                "name": "Shore Lobby",
+                "name": "Spectator Stage",
                 "default": true,
                 "position": {
                   "x": {
                     "$case": "single",
-                    "value": 32
+                    "value": 80
                   },
                   "y": {
                     "$case": "single",
-                    "value": 0.15000000596046448
+                    "value": 8.149999618530273
                   },
                   "z": {
                     "$case": "single",
-                    "value": 7
+                    "value": 155
                   }
                 },
                 "cameraTarget": {
-                  "x": 32,
-                  "y": 1.5,
-                  "z": 12
+                  "x": 80,
+                  "y": 1.399999976158142,
+                  "z": 80
                 }
               }
             ],

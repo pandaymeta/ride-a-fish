@@ -8,13 +8,13 @@ export interface State {
   indexDisplay: 'flex' | 'none'; returnDisplay: 'flex' | 'none'
 }
 export const state: State = {
-  phase: 'Welcome to Ride A Fish', mass: 'Enter the glowing sea portal',
+  phase: 'Welcome to Ride A Fish', mass: 'Step into the glowing floor circle',
   collection: 'Fish Index  0 / 3', save: 'Connecting to the sea…',
-  notice: 'Eat smaller fish. Avoid bigger fish.', result: '', best: 'Personal best  0',
+  notice: 'Collect static fish. Avoid bigger rival riders.', result: '', best: 'Personal best  0',
   clown: '???  ·  Follow the food near the shallows.',
   puffer: '???  ·  Grow past size 6 before approaching.',
   shark: '???  ·  Reach size 19 before hunting sharks.',
-  indexDisplay: 'flex', returnDisplay: 'none'
+  indexDisplay: 'none', returnDisplay: 'none'
 }
 
 /** @ui-action */

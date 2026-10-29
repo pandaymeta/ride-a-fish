@@ -1,7 +1,8 @@
 import { engine, InputAction, inputSystem, Transform } from '@dcl/sdk/ecs'
 import { getPlayer } from '@dcl/sdk/src/players'
 import { isStateSyncronized } from '@dcl/sdk/network'
-import { PORTAL, SPECIES } from '../shared/config'
+import { LOBBY, LOBBY_LOOK_AT, PORTAL, PORTAL_HEIGHT_TOLERANCE, PORTAL_RADIUS, SPECIES, STAGE } from '../shared/config'
+import { movePlayerTo } from '~system/RestrictedActions'
 import { ArenaSnapshot, PlayerProfile, room } from '../shared/messages'
 import { setupUi } from '../ui'
 import { actions } from './state'
@@ -18,6 +19,7 @@ export function startClient(): void {
   let address = '', lastSnapshot = 0, helloClock = 0, inputClock = 0, enterClock = 0, seq = 0
   let portalLatch = false, entering = false, pendingReturn = false, noticeUntil = 0
   let sceneReady = false
+  let recovering = false, lastRecovery = 0
 
   function notice(message: string): void {
     state.notice = message
@@ -49,7 +51,7 @@ export function startClient(): void {
       pendingReturn = false
       if (riding.phase === 'riding' || riding.phase === 'mounting') {
         void riding.returnToLobby()
-        state.indexDisplay = 'flex'
+        state.indexDisplay = 'none'
       }
     } else if (riding.phase === 'lobby' && !pendingReturn) {
       entering = false
@@ -75,7 +77,7 @@ export function startClient(): void {
       : profile.saved ? 'Collection saved' : 'Saving your collection…'
     if (!sceneReady) { state.phase = 'Scene setup pending'; state.mass = 'Lobby and sea are being connected.'; return }
     if (riding.phase === 'riding' && mine) {
-      state.phase = mine.shield > 0 ? 'Entry protection  ' + Math.ceil(mine.shield) + 's' : 'Eat smaller fish. Escape bigger fish.'
+      state.phase = mine.shield > 0 ? 'PvP protection  ' + Math.ceil(mine.shield) + 's' : 'Collect fish. Watch other riders.'
       state.mass = 'Fish size  ' + mine.mass
       state.returnDisplay = 'flex'
       if (inputClock >= 0.1 && alive) {
@@ -85,24 +87,31 @@ export function startClient(): void {
         void room.send('steer', { seq: ++seq, x, z })
       }
     } else {
-      state.phase = riding.phase === 'lobby' ? 'Safe shore lobby' : riding.phase === 'mounting' ? 'Climbing aboard…' : 'Returning to the shore…'
-      state.mass = 'Enter the glowing sea portal'
+      state.phase = riding.phase === 'lobby' ? 'Wooden spectator stage' : riding.phase === 'mounting' ? 'Climbing aboard…' : 'Returning to the stage…'
+      state.mass = 'Step into the glowing floor circle'
       state.returnDisplay = riding.phase === 'lobby' ? 'none' : 'flex'
       const pos = Transform.get(engine.PlayerEntity).position
-      const inside = Math.hypot(pos.x - PORTAL.x, pos.z - PORTAL.z) < 1.8
+      const inside = Math.hypot(pos.x - PORTAL.x, pos.z - PORTAL.z) < PORTAL_RADIUS
+        && Math.abs(pos.y - PORTAL.y) < PORTAL_HEIGHT_TOLERANCE
       if (!inside) portalLatch = false
       if (inside && !portalLatch && !entering && riding.phase === 'lobby' && alive && profile) {
         portalLatch = true; entering = true; enterClock = 0
         void room.send('enter', {})
       }
       if (entering && enterClock > 4) { entering = false; portalLatch = false }
+      if (riding.phase === 'lobby' && pos.y < STAGE.top - 1.5 && !recovering && Date.now() - lastRecovery > 3000) {
+        recovering = true; lastRecovery = Date.now()
+        void movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: LOBBY_LOOK_AT })
+          .catch(error => console.error('[CLIENT] Stage recovery failed.', String(error)))
+          .finally(() => { recovering = false })
+      }
     }
     if (pendingReturn && alive && inputClock >= 1) { inputClock = 0; void room.send('leave', {}) }
     view.update(dt, mine?.mass ?? 1)
     riding.update()
     if (Date.now() > noticeUntil) state.notice = riding.phase === 'riding'
-      ? 'Steer to eat automatically · EAT / EQUAL / DANGER shows the rule'
-      : 'Enter the portal and ride your fish. Discoveries survive each run.'
+      ? 'Static fish cannot attack · DANGER marks larger rival riders'
+      : 'Watch the arena, then step into the circle. Discoveries survive each run.'
   })
   console.log('[CLIENT] Ride A Fish client ready; waiting for the sea server.')
 }

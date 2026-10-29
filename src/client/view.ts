@@ -52,13 +52,17 @@ export class ArenaView {
       const seat = this.seats.get(id)
       if (seat) Transform.getMutable(seat).position.y = this.seatTop(id) - 0.09
       const protectedFish = view.state.shield > 0
-      const cue = protectedFish ? 'SAFE' : view.state.mass > myMass ? 'DANGER' : view.state.mass < myMass ? 'EAT' : 'EQUAL'
-      const label = cue + '  ' + view.state.mass
+      const npc = !view.state.owner
+      const tooBig = view.state.mass >= myMass
+      const cue = npc ? (tooBig ? 'NEED' : 'EAT')
+        : protectedFish ? 'SAFE' : view.state.mass > myMass ? 'DANGER' : view.state.mass < myMass ? 'EAT' : 'EQUAL'
+      const label = npc && tooBig ? 'SIZE ' + view.state.mass + '\nNEED ' + (view.state.mass + 1) : cue + '  ' + view.state.mass
       if (view.labelText !== label) {
         view.labelText = label
         const text = TextShape.getMutable(view.label)
         text.text = label
-        text.textColor = protectedFish ? Color4.create(0.5, 0.9, 1, 1)
+        text.textColor = npc && tooBig ? Color4.create(1, 0.8, 0.4, 1)
+          : protectedFish ? Color4.create(0.5, 0.9, 1, 1)
           : view.state.mass > myMass ? Color4.create(1, 0.42, 0.38, 1)
           : view.state.mass < myMass ? Color4.create(0.5, 1, 0.65, 1) : Color4.create(1, 1, 1, 1)
       }

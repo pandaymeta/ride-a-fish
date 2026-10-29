@@ -1,5 +1,5 @@
 import { engine, PlayerIdentityData, Transform } from '@dcl/sdk/ecs'
-import { PORTAL, SPECIES } from '../shared/config'
+import { PORTAL, PORTAL_HEIGHT_TOLERANCE, PORTAL_RADIUS, SPECIES } from '../shared/config'
 import { room } from '../shared/messages'
 import { Arena } from './arena'
 import { ProgressStore } from './progress'
@@ -7,7 +7,7 @@ import { ProgressStore } from './progress'
 export function startServer(): void {
   const arena = new Arena()
   const store = new ProgressStore()
-  const identities = new Map<string, { guest: boolean; x: number; z: number }>()
+  const identities = new Map<string, { guest: boolean; x: number; y: number; z: number }>()
   const lastInput = new Map<string, number>()
   const lastEnter = new Map<string, number>()
   const missingSince = new Map<string, number>()
@@ -18,7 +18,7 @@ export function startServer(): void {
     for (const [entity, identity] of engine.getEntitiesWith(PlayerIdentityData)) {
       const t = Transform.getOrNull(entity)
       if (t) identities.set(identity.address.toLowerCase(), {
-        guest: identity.isGuest, x: t.position.x, z: t.position.z
+        guest: identity.isGuest, x: t.position.x, y: t.position.y, z: t.position.z
       })
     }
   }
@@ -46,10 +46,11 @@ export function startServer(): void {
     lastEnter.set(address, arena.time)
     refreshIdentities()
     const player = identities.get(address)
-    if (!player || Math.hypot(player.x - PORTAL.x, player.z - PORTAL.z) > 3.5) {
-      notice(address, 'Walk into the sea portal to begin.'); return
+    if (!player || Math.hypot(player.x - PORTAL.x, player.z - PORTAL.z) > PORTAL_RADIUS + 0.5
+      || Math.abs(player.y - PORTAL.y) > PORTAL_HEIGHT_TOLERANCE) {
+      notice(address, 'Step into the glowing circle on the stage to begin.'); return
     }
-    if (!store.players.has(address)) { notice(address, 'Loading your collection. Try the portal shortly.'); return }
+    if (!store.players.has(address)) { notice(address, 'Loading your collection. Try the circle shortly.'); return }
     if (arena.getMount(address)) return
     if (!arena.enter(address)) { notice(address, 'The sea has four riders. A place will open shortly.'); return }
     store.start(address)

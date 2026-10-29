@@ -5,10 +5,8 @@
  * Object containing all entity names in the scene for autocomplete support.
  */
 export enum EntityNames {
-  Portal_Crown = "Portal Crown",
-  Portal_Left = "Portal Left",
-  Portal_Right = "Portal Right",
   Sea_Arena = "Sea Arena",
+  Sea_Circle_Instructions = "Sea Circle Instructions",
   Sea_Portal = "Sea Portal",
-  Shore_Lobby = "Shore Lobby",
+  Wooden_Spectator_Stage = "Wooden Spectator Stage",
 } 

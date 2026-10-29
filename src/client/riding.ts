@@ -1,7 +1,7 @@
 import { engine, Entity, InputModifier, MainCamera, TouchScreenControls, Transform, VirtualCamera } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import { movePlayerTo, stopEmote, triggerEmote } from '~system/RestrictedActions'
-import { LOBBY, PORTAL, SEA_Y } from '../shared/config'
+import { LOBBY, LOBBY_LOOK_AT, SEA_Y } from '../shared/config'
 import { ArenaView } from './view'
 
 export class Riding {
@@ -68,8 +68,8 @@ export class Riding {
     this.phase = 'returning'
     try {
       await stopEmote({})
-      const moved = await movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: PORTAL })
-      if (!moved.success) await movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: PORTAL })
+      const moved = await movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: LOBBY_LOOK_AT })
+      if (!moved.success) await movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: LOBBY_LOOK_AT })
     } catch (error) {
       console.error('[CLIENT] Lobby return needs retry.', String(error))
     } finally {

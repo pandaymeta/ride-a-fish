@@ -28,7 +28,7 @@ export class ProgressStore {
         : { version: 1, counts: this.numbers(raw.counts), largest: this.numbers(raw.largest),
           best: this.integer(raw.best) }
       this.players.set(address, { progress, guest, revision: 0, savedRevision: 0, saving: false,
-        peak: 0, result: 'Enter the portal. Eat smaller fish. Avoid bigger fish.' })
+        peak: 0, result: 'Enter the floor circle. Collect smaller fish. Avoid bigger rival riders.' })
       return true
     } catch (error) {
       console.error('[SERVER] Collection load failed; preserving existing storage.', String(error))
