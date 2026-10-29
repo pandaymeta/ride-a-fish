@@ -17,11 +17,11 @@ export const ENTRY_POINTS = [
 
 export const SPECIES = [
   { id: 'clownfish', name: 'Clownfish', mass: 2, population: 18,
-    model: 'assets/Models/clownfish.glb', height: 1.0833, hint: 'Follow the food near the shallows.' },
+    model: 'assets/Models/clownfish-textured.glb', height: 1.0833, hint: 'Follow the food near the shallows.' },
   { id: 'pufferfish', name: 'Puffer Fish', mass: 6, population: 12,
-    model: 'assets/Models/pufferfish.glb', height: 1.5455, hint: 'Grow past size 6 before approaching.' },
+    model: 'assets/Models/pufferfish-textured.glb', height: 1.5455, hint: 'Grow past size 6 before approaching.' },
   { id: 'reef-shark', name: 'Blacktip Reef Shark', mass: 18, population: 6,
-    model: 'assets/Models/reef-shark.glb', height: 0.8235, hint: 'Harmless until caught. Reach size 19 first.' }
+    model: 'assets/Models/reef-shark-textured.glb', height: 0.8235, hint: 'Harmless until caught. Reach size 19 first.' }
 ] as const
 
 export function fishScale(mass: number): number {

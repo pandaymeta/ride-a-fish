@@ -102,7 +102,7 @@ export class Arena {
         this.events.push({ type: 'growth', owner: eater.owner, mass: live.mass })
         if (!prey.owner) this.events.push({ type: 'catch', owner: eater.owner, species: prey.species, mass: prey.mass })
         if (prey.owner) this.events.push({ type: 'end', owner: prey.owner,
-          reason: 'Another rider ate your fish. Your discoveries are safe.' })
+          reason: 'A larger player fish ate you. Your discoveries are safe.' })
         else this.pending.push({ at: this.time + 8, species: prey.species, x: prey.x, z: prey.z, yaw: prey.yaw })
       }
     }

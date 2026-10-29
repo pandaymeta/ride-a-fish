@@ -52,7 +52,7 @@ export function startServer(): void {
     }
     if (!store.players.has(address)) { notice(address, 'Loading your collection. Try the circle shortly.'); return }
     if (arena.getMount(address)) return
-    if (!arena.enter(address)) { notice(address, 'The sea has four riders. A place will open shortly.'); return }
+    if (!arena.enter(address)) { notice(address, 'The sea has four players. A place will open shortly.'); return }
     store.start(address)
     sendProfile(address)
   })
@@ -107,5 +107,5 @@ export function startServer(): void {
       for (const address of store.players.keys()) void store.flush(address)
     }
   })
-  console.log('[SERVER] Ride A Fish ready: 4 riders, 3 species, authoritative eating.')
+  console.log('[SERVER] Ride A Fish ready: 4 players, 3 species, authoritative eating.')
 }

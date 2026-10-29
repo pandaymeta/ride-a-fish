@@ -1,22 +1,22 @@
-import { Billboard, ColliderLayer, engine, Entity, GltfContainer, Material, MeshCollider,
+import { Billboard, engine, Entity, GltfContainer, Material,
   MeshRenderer, TextShape, Transform } from '@dcl/sdk/ecs'
 import { Color3, Color4, Quaternion, Vector3 } from '@dcl/sdk/math'
 import { fishScale, SEA_Y, SPECIES } from '../shared/config'
 import { ArenaSnapshot, FishState } from '../shared/messages'
+import { getPlayer } from '@dcl/sdk/src/players'
 
 interface FishView { root: Entity; body: Entity; label: Entity; scale: number; state: FishState; labelText: string }
 
 export class ArenaView {
   readonly fish = new Map<number, FishView>()
   private food = new Map<number, Entity>()
-  private seats = new Map<number, Entity>()
 
-  apply(snapshot: ArenaSnapshot, keepMount?: number): void {
+  apply(snapshot: ArenaSnapshot, keepFish?: number): void {
     const present = new Set(snapshot.fish.map(f => f.id))
     for (const [id, view] of this.fish) {
-      if (!present.has(id) && id !== keepMount) {
+      if (!present.has(id) && id !== keepFish) {
         engine.removeEntity(view.root)
-        this.fish.delete(id); this.seats.delete(id)
+        this.fish.delete(id)
       }
     }
     for (const state of snapshot.fish) {
@@ -39,7 +39,7 @@ export class ArenaView {
     }
   }
 
-  update(dt: number, myMass: number): void {
+  update(dt: number, myMass: number, myFishId?: number): void {
     const alpha = 1 - Math.exp(-dt * 14)
     for (const [id, view] of this.fish) {
       const t = Transform.getMutable(view.root)
@@ -49,14 +49,16 @@ export class ArenaView {
       view.scale += (fishScale(view.state.mass) - view.scale) * (1 - Math.exp(-dt * 4))
       const body = Transform.getMutable(view.body)
       body.scale = Vector3.create(view.scale, view.scale, view.scale)
-      const seat = this.seats.get(id)
-      if (seat) Transform.getMutable(seat).position.y = this.seatTop(id) - 0.09
       const protectedFish = view.state.shield > 0
       const npc = !view.state.owner
       const tooBig = view.state.mass >= myMass
       const cue = npc ? (tooBig ? 'NEED' : 'EAT')
         : protectedFish ? 'SAFE' : view.state.mass > myMass ? 'DANGER' : view.state.mass < myMass ? 'EAT' : 'EQUAL'
-      const label = npc && tooBig ? 'SIZE ' + view.state.mass + '\nNEED ' + (view.state.mass + 1) : cue + '  ' + view.state.mass
+      const name = id === myFishId ? 'YOU' : npc ? ''
+        : (getPlayer({ userId: view.state.owner })?.name ?? 'Player').replace(/[<>]/g, '').slice(0, 24)
+      const sizeLabel = npc && tooBig ? 'SIZE ' + view.state.mass + '\nNEED ' + (view.state.mass + 1)
+        : (id === myFishId ? 'SIZE' : cue) + '  ' + view.state.mass
+      const label = name ? name + '\n' + sizeLabel : sizeLabel
       if (view.labelText !== label) {
         view.labelText = label
         const text = TextShape.getMutable(view.label)
@@ -66,33 +68,8 @@ export class ArenaView {
           : view.state.mass > myMass ? Color4.create(1, 0.42, 0.38, 1)
           : view.state.mass < myMass ? Color4.create(0.5, 1, 0.65, 1) : Color4.create(1, 1, 1, 1)
       }
-      Transform.getMutable(view.label).position.y = SPECIES[view.state.species].height * view.scale / 2 + (view.state.owner ? 2.3 : 0.65)
+      Transform.getMutable(view.label).position.y = SPECIES[view.state.species].height * view.scale / 2 + (view.state.owner ? 1.1 : 0.65)
     }
-  }
-
-  seatTop(id: number): number {
-    const view = this.fish.get(id)
-    return view ? SPECIES[view.state.species].height * view.scale / 2 - 0.45 : 0
-  }
-
-  createSeat(id: number): Entity {
-    const view = this.fish.get(id)
-    if (!view) throw new Error('The fish is not ready.')
-    const seat = engine.addEntity()
-    Transform.create(seat, { parent: view.root, position: Vector3.create(0, this.seatTop(id) - 0.09, 0),
-      scale: Vector3.create(1.2, 0.18, 1.2) })
-    // A rendered support avoids relying solely on invisible mobile colliders.
-    MeshRenderer.setBox(seat)
-    MeshCollider.setBox(seat, ColliderLayer.CL_PHYSICS)
-    Material.setPbrMaterial(seat, { albedoColor: { r: 0.07, g: 0.32, b: 0.4, a: 1 }, roughness: 1 })
-    this.seats.set(id, seat)
-    return seat
-  }
-
-  removeSeat(id: number): void {
-    const seat = this.seats.get(id)
-    if (seat) engine.removeEntity(seat)
-    this.seats.delete(id)
   }
 
   private createFish(state: FishState): FishView {
