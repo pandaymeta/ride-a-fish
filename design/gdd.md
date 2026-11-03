@@ -16,7 +16,7 @@
 | Primary player | For players who like quick survival games and collecting creatures, whether they arrive alone or with friends. |
 | Current status | The Decentraland sample is open for public testing. Board, swim, grow, dodge the shark, and dock. The Fish Index has four collectible species. [Play the test scene](https://decentraland.org/jump?realm=entenium.dcl.eth) · [Project repository](https://github.com/pandaymeta/ride-a-fish) |
 | Requested round | V0, first Creator Success application. |
-| Live at the end of V0 | In our World, players can ride, compete for fish, escape predators, and dock with their discoveries saved. |
+| Proposed V0 | Playtest the first ride solo and with a rival. Check whether new players understand the chase and choose to ride again. |
 
 ## 1. Player Promise
 
@@ -61,26 +61,26 @@ The sample has 60 green food pickups, five Blue Tangs (size 2), two Reef Angelfi
 
 ## 4. Why Players Come Back
 
-**4.1 Next day** Players can return to hunt a fish missing from their Index. Planned spawn timers will show when rare fish are due, and a future shop will let players save up for a favorite fish skin.
+**4.1 Next day** Before leaving, a player spots a missing fish in the Index and checks the island schedule. If the next window is tomorrow at 13:00 UTC, they have a time to come back and can invite a friend to race for it.
 
 **4.2 Progression** Eat a new species → save the discovery → pick a harder target → learn a better route or bring a friend to help find it.
 
 | When | What lasts and what you can do next | What others see |
 |---|---|---|
 | First visit | The Index keeps your first discoveries after defeat. Pick a missing fish for your next ride. | Your name and current fish size in the arena. |
-| First week | Plan a harder catch with what you have learned. The planned shop will let you save coins for a fish skin. | Other riders can see the skin you equip. |
+| First week | Plan a harder catch with what you have learned, or try to beat your best size. | The planned island board shows the best sizes across servers. |
 | Week three onward | Planned fish windows and monthly events give collectors new targets. | Riders can meet for the same spawn and recognize familiar rivals. |
 
 You open the Index and see which fish you still need. A rider you remember from yesterday is heading out, so you try a different route to beat them to the next catch. You can lose the chase and still keep a discovery.
 
-Coins come from food and fish pickups. The sample saves your balance. The planned shop will let you spend coins on fish skins.
+Coins come from food and fish pickups. The sample saves your balance.
 
-**4.3 Two return hooks**
+**4.3 Reasons to return**
 
 | Hook | Trigger | Why come back and how you know |
 |---|---|---|
-| The next discovery | The Index saves a species on its first catch. Planned spawns make higher rarities less likely, with one guaranteed Mythic every 30 minutes and one Secret every hour, on UTC boundaries. | The Index shows what you are missing. A shared map countdown will show the next guaranteed spawn so friends can meet for it. |
-| Fish skins | The planned shop will sell fish skins for coins earned in the arena. | Pick a skin to save for and use it on future rides. |
+| Timed fish discoveries | The planned island schedule shows the next daily window for a featured fish. The Index saves each species on its first catch. | Check which fish you still need and plan your next visit around its spawn. A shared countdown gives friends a time to meet. |
+| Beat your best | The planned island leaderboard will rank players by their best fish size across runs. | Come back to beat your record and try to earn a place in the global top 20. |
 
 ## 5. Social by Design
 
@@ -95,6 +95,11 @@ Coins come from food and fish pickups. The sample saves your balance. The planne
 | Visible play | From the dock you can see a named rider grow, turn, and chase the fish that was just chasing them. |
 | Shareable moment | A tiny rider jumps out of the Hammerhead's path and lands in a white splash. |
 | Bring a friend | Invite a friend back to race for the same rare catch or settle a close chase. |
+
+### Planned leaderboards
+
+- **Live server leaderboard.** A small HUD panel in the top-right corner shows the three largest fish being ridden on your server, with each rider’s name and current fish size. Your own row sits beside the top three and shows your name, size, and rank, even when you are outside the top three. The board updates as riders grow, board, dock, or leave.
+- **Global leaderboard.** A billboard on the island shows the top 20 players across servers, with their rank, name, and best fish size. Each player has one entry. Their best size stays on record after they leave, giving them a score to beat on their next visit.
 
 ## 6. Mobile-First
 
@@ -131,19 +136,26 @@ We plan to invite the first group through our existing contacts and share one Wo
 
 ## 9. Four Week Plan
 
-**Application sample** The public test scene shows the ride, eat, grow, escape, and dock loop. V0 scope is subject to agreement with Creator Success. The following is the proposed V1 plan after V0. [Play Ride A Fish](https://decentraland.org/jump?realm=entenium.dcl.eth)
+**Application sample** The public test scene shows the ride, eat, grow, escape, and dock loop. V0 scope is subject to agreement with Creator Success. [Play Ride A Fish](https://decentraland.org/jump?realm=entenium.dcl.eth)
+
+**Proposed V0 playtest** In the published World, ask fresh players to join with no coaching. Aim for at least 80% to take a useful action within five seconds and explain their immediate goal within ten. Watch whether they find the dock, board, and see their fish grow within one minute. Run a solo session and a two-player session. Check whether riders read the size numbers, know when to chase or flee, and choose another ride after docking or defeat. Use what we learn to tune onboarding and the first chase.
+
+The V0 playtest focuses on the first ride. The fish skin shop, leaderboards, and seasonal fish are planned for later.
+
+**Proposed V1 plan after V0**
 
 | Week | What we will build or check |
 |---|---|
-| 1 | Watch first-time players find the dock and board. Aim for 80% to take a useful action within five seconds and explain the immediate goal within ten. Test touch boarding early. |
+| 1 | Fix the onboarding issues found in V0 and test touch boarding early. |
 | 2 | Run a group test with four players. Check contested catches, shark contact, voluntary retries, full slots, docking, and rejoining. |
 | 3 | Tune starter food, protection, and chase balance. If the core loop is stable, test the shared countdown and timed rare fish. |
 | 4 | Test mobile controls and frame rate, verify saved discoveries, and prepare the V1 update. Track first-week returns after release. |
 
 **Planned content after launch**
 
-- **Fish collection.** Add species to the Index, with timed and seasonal fish that give players a reason to return.
+- **Fish collection.** Add timed and seasonal species to the Index. A planned shared countdown shows the next guaranteed Mythic (every 30 minutes) and Secret (every hour), on UTC boundaries.
 - **Fish skin shop.** Let players spend earned coins on skins for their rides.
+- **Leaderboards.** Add the live server top three and the island’s global top 20 billboard. Playtest whether players understand both rankings and come back to improve their best size.
 
 **Top risk and fallback** If first-time players get stuck at the dock, shorten the guidance and test one clear Ride action before expanding the tutorial. If touch seating is unreliable, prioritize a reliable board-and-dock transition before adding optional motion effects.
 
