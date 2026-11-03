@@ -569,16 +569,16 @@
               "y": 7.25,
               "z": 73.75
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -1598,16 +1598,16 @@
               "y": 7.25,
               "z": 70.75
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -2543,16 +2543,16 @@
               "y": 7.25,
               "z": 73.5
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -2564,16 +2564,16 @@
               "y": 7.25,
               "z": 77.25
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -2585,16 +2585,16 @@
               "y": 7.25,
               "z": 80
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -2606,16 +2606,16 @@
               "y": 7.25,
               "z": 76.5
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -2627,16 +2627,16 @@
               "y": 7.25,
               "z": 78.5
             },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
             "rotation": {
               "x": 0,
               "y": 0.7933533191680908,
               "z": 0,
               "w": -0.6087614297866821
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
             },
             "parent": 0
           }
@@ -4835,8 +4835,8 @@
         "574": {
           "json": {
             "src": "assets/asset-packs/rock_-_empty_land_3/rock03.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "575": {
@@ -5024,8 +5024,8 @@
         "606": {
           "json": {
             "src": "assets/asset-packs/flat_low_poly_rock/flat_low_poly_rock/flat_low_poly_rock.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "607": {
@@ -5038,8 +5038,8 @@
         "608": {
           "json": {
             "src": "assets/asset-packs/grey_boulder/grey_boulder/grey_boulder.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "609": {
@@ -5073,8 +5073,8 @@
         "613": {
           "json": {
             "src": "assets/asset-packs/mossy_boulder/mossy_boulder/mossy_boulder.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "614": {
@@ -5136,15 +5136,15 @@
         "622": {
           "json": {
             "src": "assets/asset-packs/rock_-_empty_land_2/rock02.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "623": {
           "json": {
             "src": "assets/asset-packs/rock_-_empty_land_3/rock03.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "624": {
@@ -5458,8 +5458,8 @@
         "684": {
           "json": {
             "src": "assets/asset-packs/flat_low_poly_rock/flat_low_poly_rock/flat_low_poly_rock.glb",
-            "visibleMeshesCollisionMask": 0,
-            "invisibleMeshesCollisionMask": 3
+            "visibleMeshesCollisionMask": 2,
+            "invisibleMeshesCollisionMask": 0
           }
         },
         "689": {
@@ -9340,6 +9340,9 @@
             "porportionalScaling": true
           }
         },
+        "530": {
+          "json": {}
+        },
         "531": {
           "json": {}
         },
@@ -10325,7 +10328,7 @@
         "0": {
           "json": {
             "name": "Ride A Fish",
-            "description": "Become a growing fish in a 128m sea, collect stationary fish, and compete with other players. Return to your avatar on the wooden spectator stage.",
+            "description": "Ride a fish around a tropical island. Eat green food and smaller fish to grow, chase rival riders, and dodge the roaming shark. Dock safely to park your fish and check your discoveries in the Fish Index.",
             "thumbnail": "assets/Images/autogenerated-thumbnail.png",
             "ageRating": "A",
             "categories": [

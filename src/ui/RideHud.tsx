@@ -69,9 +69,7 @@ export function RideHud() {
       <UiEntity uiTransform={{ width: state.cashTextWidth, height: 64 }}>
         <ArcadeText value={state.cash} width={state.cashTextWidth} height={64} fontSize={state.cashFontSize} align="left" color={{ r: 1, g: 0.8, b: 0.24, a: 1 }} outlineColor={{ r: 0.3, g: 0.13, b: 0.035, a: 1 }} />
       </UiEntity>
-      {textureReady(COIN_TEXTURE)
-        ? <UiEntity uiTransform={{ width: state.cashIconSize, height: state.cashIconSize, margin: { left: 8 } }} uiBackground={{ texture: { src: COIN_TEXTURE }, textureMode: 'stretch' }} />
-        : <ArcadeText value="Coins" width={state.cashIconSize + 16} height={64} fontSize={18} />}
+      <UiEntity uiTransform={{ width: state.cashIconSize, height: state.cashIconSize, margin: { left: 8 } }} uiBackground={{ texture: { src: COIN_TEXTURE }, textureMode: 'stretch' }} />
     </UiEntity>
     <UiEntity uiTransform={{ width: 116, height: 116, positionType: 'absolute', position: { right: state.indexRight, top: state.indexTop }, justifyContent: 'center', alignItems: 'center' }} onMouseDown={() => toggleIndex()}>
       {textureReady(INDEX_ICON)
