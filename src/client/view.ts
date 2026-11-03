@@ -54,7 +54,8 @@ export class ArenaView {
   private mountedFish?: number
   private sharkId?: number
 
-  constructor(private contact: (pickup: LocalPickup) => void = () => {}) {
+  constructor(private contact: (pickup: LocalPickup) => void = () => {},
+    private readonly localSplash?: (landing: boolean) => void) {
     FishPowerEffects.preload()
     FishWaterEffects.preload()
   }
@@ -312,7 +313,8 @@ export class ArenaView {
         const visible = view.state.boardState === 2 && sceneVisible && (id !== myFishId || followPlayer)
           && (VisibilityComponent.getOrNull(view.root)?.visible ?? true) && !this.prediction.hidden(1, id)
         const fast = boosting || (isShark(view.state) && (view.state.motion ?? 0) > 0)
-        view.waterEffects.update(dt, height * view.scale, fast, visible, camera, jumpHeight)
+        view.waterEffects.update(dt, height * view.scale, fast, visible, camera, jumpHeight,
+          jumpReady ? this.localSplash : undefined)
       }
       if (view.powerEffects) {
         const shielded = (view.state.powerShield ?? 0) > 0 || (id === myFishId && !!localPower?.shieldPreview)

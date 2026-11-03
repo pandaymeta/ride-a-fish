@@ -18,6 +18,7 @@ import { ArenaView } from './view'
 import { PickupEffects } from './pickupEffects'
 import { PowerupClient } from './powerups'
 import { EatenSound } from './eatenSound'
+import { IslandAudio } from './islandAudio'
 import { setupIndex, updateIndexProfile } from './indexPanel'
 import { startOceanFoam } from './oceanFoam'
 import { SandFootprints } from './sandFootprints'
@@ -31,7 +32,8 @@ export function startClient(): void {
   const pickups = new PickupEffects()
   const powerups = new PowerupClient()
   const eatenSound = new EatenSound()
-  const view = new ArenaView(pickup => pickups.predict(pickup))
+  const islandAudio = new IslandAudio()
+  const view = new ArenaView(pickup => pickups.predict(pickup), landing => islandAudio.splash(landing))
   const form = new FishForm(view)
   let snapshot: ArenaSnapshot = { tick: 0, fish: [], food: [] }
   let profile: PlayerProfile | undefined
@@ -209,9 +211,13 @@ export function startClient(): void {
     tutorial.update(dt, canInteract && form.phase === 'lobby' && !entering && !dockPending && !stools.busy, state.indexDisplay === 'flex')
     powerups.updateControl(dt, mine, riding, alive, state.indexDisplay === 'flex')
     view.update(dt, mine?.mass ?? 1, mine?.id, riding, riding && alive && !dockPending, powerups.controls)
+    const fishPosition = view.localFishPosition
+    const airborne = view.localFishAirborne
+    const activeRider = riding && alive && !dockPending && view.localRiderSeated
+    islandAudio.update(dt, playerPosition, activeRider ? fishPosition : undefined, airborne, powerups.controls.boosting, tutorial.busy)
     movementHints.update(canInteract && profile?.tutorialSteps !== TUTORIAL_COMPLETE, form.phase, riding, view.localRiderSeated && !view.awaitingMovementRelease,
-      tutorial.busy || stools.busy || entering || dockPending || state.indexDisplay === 'flex', playerPosition, view.localFishPosition, view.localFishAirborne)
-    tutorial.navigate(dt, snapshot, mine, view.localFishPosition, riding && alive,
+      tutorial.busy || stools.busy || entering || dockPending || state.indexDisplay === 'flex', playerPosition, fishPosition, airborne)
+    tutorial.navigate(dt, snapshot, mine, fishPosition, riding && alive,
       (kind, id) => kind === 'food' || kind === 'fish' ? view.tutorialAvailable(kind, id) : powerups.tutorialAvailable(id))
     dock.update(dt, mine, form.phase, form.readyToRide, canInteract, entering || dockPending || tutorial.interacting, queuePosition, tutorial.fishArrowUnlocked)
     dockExit.update(dt, mine, riding && alive && state.indexDisplay !== 'flex', dockPending)
@@ -227,7 +233,7 @@ export function startClient(): void {
       notice('Unable to reseat your avatar. Please enter the arena again.')
       actions.returnToLobby()
     }
-    powerups.updateContact(mine, view.localFishPosition, riding && alive && !dockPending && view.localRiderSeated)
+    powerups.updateContact(mine, fishPosition, activeRider)
     eatenSound.update()
     pickups.update(dt, form.phase === 'fish')
     if (Date.now() > noticeUntil) state.notice = form.phase === 'fish'

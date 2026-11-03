@@ -62,7 +62,7 @@ export class FishWaterEffects {
     AssetLoad.create(entity, { assets: [RIPPLES, SPRAY] })
   }
 
-  update(dt: number, bodyHeight: number, fast: boolean, allowed: boolean, camera?: Vector3, jumpHeight = 0): void {
+  update(dt: number, bodyHeight: number, fast: boolean, allowed: boolean, camera?: Vector3, jumpHeight = 0, onSplash?: (landing: boolean) => void): void {
     const position = getWorldPosition(engine, this.root)
     const distance = Math.hypot(position.x - this.last.x, position.z - this.last.z)
     this.last = position
@@ -76,7 +76,10 @@ export class FishWaterEffects {
       this.setVisible(false)
       return
     }
-    if (this.jumping !== wasJumping) this.startSplash(position, bodyHeight, !this.jumping)
+    if (this.jumping !== wasJumping) {
+      this.startSplash(position, bodyHeight, !this.jumping)
+      onSplash?.(!this.jumping)
+    }
     if (this.splashTime > 0) {
       this.splashTime = Math.max(0, this.splashTime - dt)
       if (this.emissionTime > 0 && (this.emissionTime = Math.max(0, this.emissionTime - dt)) === 0) {
