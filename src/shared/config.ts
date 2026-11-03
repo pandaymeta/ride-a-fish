@@ -1,35 +1,62 @@
+import { LAGOON_BOUNDS } from './lagoon'
+import { FISH_JUMP_HEIGHT } from './fishJump'
+import { FISH_MODELS } from './fishAssets'
+import { insideLobbyIsland, lobbySurfaceY } from './lobbyIsland'
+import { SHARK_RULES } from './shark'
+
 export const WORLD_NAME = 'entenium.dcl.eth'
-export const MAX_RIDERS = 4
-export const SPEED = 4
+export const MAX_RIDERS = 10
+export const SPEED = 5
 export const ENTRY_SHIELD = 10
-export const FOOD_COUNT = 180
-export const SEA_Y = 1.4
-export const STAGE = { minX: 48, maxX: 112, minZ: 146, maxZ: 158, top: 8 }
-export const LOBBY = { x: 80, y: STAGE.top + 0.15, z: 155 }
-export const LOBBY_LOOK_AT = { x: 80, y: SEA_Y, z: 80 }
-export const PORTAL = { x: 80, y: STAGE.top + 0.035, z: 150 }
-export const PORTAL_RADIUS = 2.65
-export const PORTAL_HEIGHT_TOLERANCE = 1.2
-export const SEA = { minX: 16, maxX: 144, minZ: 16, maxZ: 144 }
+export const FOOD_COUNT = 60
+// Visible waterline; bodies sit a quarter of their height below this surface.
+export const SEA_Y = 7.05
+export const OCEAN_FLOOR_Y = 0.35
+export const STAGE = { minX: 71, maxX: 121, minZ: 74.125, maxZ: 117.875, top: 10.1 }
+export const ARENA_MAX_PLAYER_Y = SEA_Y + 3.5 + FISH_JUMP_HEIGHT
+
+export function setStageHeight(top: number): void {
+  STAGE.top = top
+}
+export const LOBBY = { x: 96, y: STAGE.top + 0.15, z: 101.5 }
+export const LOBBY_LOOK_AT = { x: 96, y: SEA_Y, z: 80 }
+export const SEA = LAGOON_BOUNDS
 export const ENTRY_POINTS = [
-  { x: 48, z: 128 }, { x: 112, z: 128 }, { x: 48, z: 48 }, { x: 112, z: 48 }
+  { x: 57.6, z: 128 }, { x: 134.4, z: 128 }, { x: 57.6, z: 48 }, { x: 134.4, z: 48 }
 ]
 
-export const SPECIES = [
-  { id: 'clownfish', name: 'Clownfish', mass: 2, population: 18,
-    model: 'assets/Models/clownfish-textured.glb', height: 1.0833, hint: 'Follow the food near the shallows.' },
-  { id: 'pufferfish', name: 'Puffer Fish', mass: 6, population: 12,
-    model: 'assets/Models/pufferfish-textured.glb', height: 1.5455, hint: 'Grow past size 6 before approaching.' },
-  { id: 'reef-shark', name: 'Blacktip Reef Shark', mass: 18, population: 6,
-    model: 'assets/Models/reef-shark-textured.glb', height: 0.8235, hint: 'Harmless until caught. Reach size 19 first.' }
+export const PLAYER_SKINS = [
+  { id: 'clownfish', name: 'Clownfish', ...FISH_MODELS.clownfish }
 ] as const
 
+// Keep collection indices stable so existing saved discoveries remain valid.
+export const SPECIES = [
+  { id: 'lime-fish', name: 'Blue Tang', rarity: 'Common', mass: 2, population: 5,
+    ...FISH_MODELS.common, hint: 'Reach size 3 to collect a Blue Tang.' },
+  { id: 'pufferfish', name: 'Reef Angelfish', rarity: 'Uncommon', mass: 6, population: 2,
+    ...FISH_MODELS.uncommon, hint: 'Reach size 7 to collect a Reef Angelfish.' },
+  { id: 'bigeye-tuna', name: 'Red Reef Fish', rarity: 'Rare', mass: 18, population: 1,
+    ...FISH_MODELS.rare, hint: 'Reach size 19 to collect a Red Reef Fish.' },
+  { id: 'potato-grouper', name: 'Coming Soon', rarity: 'Epic', mass: 36, population: 0,
+    ...FISH_MODELS.rare, hint: 'Coming soon.' },
+  { id: 'blacktip-reef-shark', name: 'Hammerhead Shark', rarity: 'Secret', mass: SHARK_RULES.startValue, population: 1,
+    ...FISH_MODELS.shark, hint: 'Outgrow the roaming shark to collect it (starts at 1,000).' }
+] as const
+export const COLLECTIBLE_SPECIES = SPECIES.map((fish, index) => ({ ...fish, index })).filter(fish => fish.population > 0)
+export function collectedSpeciesCount(counts: readonly number[]): number {
+  return COLLECTIBLE_SPECIES.filter(fish => (counts[fish.index] ?? 0) > 0).length
+}
+
+export function onPlatform(position: { x: number; y: number; z: number }): boolean {
+  return insideLobbyIsland(position.x, position.z) && Math.abs(position.y - lobbySurfaceY(position.x, position.z)) <= 1.5
+}
+
 export function fishScale(mass: number): number {
-  return Math.min(3, Math.cbrt(Math.max(1, mass)))
+  return Math.min(2.2, 0.45 * Math.cbrt(Math.max(1, mass)))
 }
 
 export function eatRadius(mass: number): number {
-  return 0.65 * fishScale(mass)
+  return 0.85 * fishScale(mass)
 }
 
 export function clamp(value: number, low: number, high: number): number {

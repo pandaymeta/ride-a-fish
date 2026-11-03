@@ -1,93 +1,173 @@
-import { engine, Entity, InputModifier, MainCamera, TouchScreenControls, Transform, VirtualCamera } from '@dcl/sdk/ecs'
+import { AvatarLocomotionSettings, engine, InputModifier, MainCamera, Transform } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
-import { movePlayerTo } from '~system/RestrictedActions'
-import { LOBBY, LOBBY_LOOK_AT, SEA, SEA_Y } from '../shared/config'
+import { movePlayerTo, stopEmote } from '~system/RestrictedActions'
+import { SEA_Y, SPEED } from '../shared/config'
 import { ArenaView } from './view'
+import { playBoardingWalk, playRiderSittingPose } from './riderPose'
+import type { DockLanding } from '../shared/dockSurfaces'
+import { landAtLobby } from './lobbyLanding'
 
 export class FishForm {
   fishId: number | undefined
-  phase: 'lobby' | 'transforming' | 'fish' | 'returning' = 'lobby'
-  private forwardZ = 1
-  private camera: Entity | undefined
-  private target: Entity | undefined
+  phase: 'lobby' | 'transforming' | 'fish' | 'docking' | 'returning' = 'lobby'
+  readyToRide = false
+  private operation = 0
+  private transition: Promise<unknown> = Promise.resolve()
   private previousInput: ReturnType<typeof InputModifier.getOrNull> = null
-  private previousTouch: ReturnType<typeof TouchScreenControls.getOrNull> = null
+  private previousLocomotion: ReturnType<typeof AvatarLocomotionSettings.getOrNull> = null
 
-  constructor(private view: ArenaView) {}
+  constructor(private view: ArenaView) {
+    // Release a legacy scripted camera when hot-reloading into native swimming.
+    const camera = MainCamera.getMutableOrNull(engine.CameraEntity)
+    if (camera) camera.virtualCameraEntity = undefined
+  }
 
   async transform(id: number): Promise<boolean> {
     if (this.phase !== 'lobby') return false
     const fish = this.view.fish.get(id)
     if (!fish) return false
-    this.phase = 'transforming'; this.fishId = id
-    this.forwardZ = fish.state.z > (SEA.minZ + SEA.maxZ) / 2 ? -1 : 1
+    const operation = ++this.operation
+    this.phase = 'transforming'; this.fishId = id; this.readyToRide = false
+    console.log('[BOARDING] Beginning dock step.', id)
+    const facing = Vector3.create(fish.state.x + Math.sin(fish.state.yaw) * 10, SEA_Y,
+      fish.state.z + Math.cos(fish.state.yaw) * 10)
     this.previousInput = InputModifier.getOrNull(engine.PlayerEntity)
-    this.previousTouch = TouchScreenControls.getOrNull(engine.RootEntity)
-    InputModifier.createOrReplace(engine.PlayerEntity, { mode: InputModifier.Mode.Standard({
-      disableWalk: true, disableJog: true, disableRun: true, disableJump: true,
-      disableDoubleJump: true, disableGliding: true, disableEmote: true
-    }) })
+    this.previousLocomotion = AvatarLocomotionSettings.getOrNull(engine.PlayerEntity)
+    InputModifier.createOrReplace(engine.PlayerEntity, { mode: InputModifier.Mode.Standard({ disableAll: true }) })
     try {
-      // The editor-authored sea modifier hides every human avatar in the arena.
-      // Input drives the authoritative fish; its camera needs no rider, seat, or moving platform.
-      const moved = await movePlayerTo({
-        newRelativePosition: Vector3.create(fish.state.x, SEA_Y, fish.state.z),
-        avatarTarget: Vector3.create(fish.state.x, SEA_Y, fish.state.z + 3)
+      const seat = this.view.mountLocalFish(id)
+      // Keep the current camera while the real avatar steps over the dock edge.
+      // A short two-part path clears the lip, then lowers onto the waiting fish.
+      const start = { ...Transform.get(engine.PlayerEntity).position }
+      this.transition = playBoardingWalk()
+      await this.transition
+      if (operation !== this.operation) return false
+      const step = Vector3.create(start.x + (seat.x - start.x) * 0.45,
+        Math.max(start.y, seat.y) + 0.16, start.z + (seat.z - start.z) * 0.45)
+      this.transition = movePlayerTo({ newRelativePosition: step, duration: 0.4, avatarTarget: facing })
+      const first = await this.transition as { success?: boolean }
+      if (first.success === false) throw new Error('The boarding step was interrupted.')
+      if (operation !== this.operation) return false
+      this.transition = movePlayerTo({ newRelativePosition: seat, duration: 0.5, avatarTarget: facing })
+      const landed = await this.transition as { success?: boolean }
+      if (landed.success === false) throw new Error('The boarding landing was interrupted.')
+      await stopEmote({})
+      if (operation !== this.operation) return false
+      const seated = await this.view.waitForLocalFishSeat(id)
+      if (operation !== this.operation) return false
+      if (!seated) throw new Error('Could not settle the avatar on its fish.')
+      AvatarLocomotionSettings.createOrReplace(engine.PlayerEntity, {
+        walkSpeed: 3, jogSpeed: SPEED, runSpeed: SPEED,
+        jumpHeight: 0, runJumpHeight: 0, doubleJumpHeight: 0, hardLandingCooldown: 0
       })
-      if (!moved.success || this.phase !== 'transforming') throw new Error('Fish transformation did not finish.')
-      TouchScreenControls.hideAll()
-      TouchScreenControls.hideCrosshair()
-      TouchScreenControls.showJoystick()
-      this.target = engine.addEntity()
-      Transform.create(this.target, { parent: fish.root, position: Vector3.create(0, 0.4, 0) })
-      this.camera = engine.addEntity()
-      Transform.create(this.camera, { position: Vector3.create(fish.state.x, 10, fish.state.z - this.forwardZ * 11) })
-      VirtualCamera.create(this.camera, { lookAtEntity: this.target,
-        defaultTransition: { transitionMode: VirtualCamera.Transition.Time(0.25) } })
-      MainCamera.createOrReplace(engine.CameraEntity, { virtualCameraEntity: this.camera })
-      this.phase = 'fish'
+      InputModifier.createOrReplace(engine.PlayerEntity, { mode: InputModifier.Mode.Standard({ disableAll: true }) })
+      this.transition = playRiderSittingPose()
+      await this.transition
+      if (operation !== this.operation) return false
+      // Let the sitting pose and avatar capsule settle before the fish can accept input.
+      const settled = await this.view.waitForLocalFishSeat(id, true)
+      if (operation !== this.operation) return false
+      if (!settled) throw new Error('The seated avatar did not settle on its fish.')
+      this.readyToRide = true
+      console.log('[BOARDING] Seated; awaiting server confirmation.', id)
       return true
     } catch (error) {
+      if (operation !== this.operation) return false
       console.error('[CLIENT] Fish transformation failed.', String(error))
       await this.returnToLobby()
       return false
     }
   }
 
-  steering(x: number, z: number): { x: number; z: number } {
-    return { x: x * this.forwardZ, z: z * this.forwardZ }
+  activate(id: number): void {
+    if (this.phase === 'transforming' && this.fishId === id && this.readyToRide) {
+      this.phase = 'fish'
+      console.log('[BOARDING] Riding fish.', id)
+    }
   }
 
-  update(): void {
-    if (this.camera === undefined || this.fishId === undefined) return
-    const view = this.view.fish.get(this.fishId)
-    if (!view) return
-    const fish = Transform.get(view.root)
-    Transform.getMutable(this.camera).position = Vector3.create(
-      fish.position.x, SEA_Y + 7 + view.scale * 2, fish.position.z - this.forwardZ * (9 + view.scale * 2))
-    if (this.target !== undefined) Transform.getMutable(this.target).position.y = view.scale * 0.25
+  async disembark(id: number, landing: DockLanding): Promise<boolean> {
+    if (this.phase !== 'fish' || this.fishId !== id) return false
+    const operation = ++this.operation
+    this.phase = 'docking'; this.readyToRide = false
+    InputModifier.createOrReplace(engine.PlayerEntity, { mode: InputModifier.Mode.Standard({ disableAll: true }) })
+    try {
+      // Stop reseating/swimming, but retain the support collider until the avatar reaches the dock.
+      await this.view.pauseLocalFish()
+      if (operation !== this.operation) return false
+      await stopEmote({})
+      const start = { ...Transform.get(engine.PlayerEntity).position }
+      const facing = Vector3.create(landing.x + (landing.x - start.x), landing.y,
+        landing.z + (landing.z - start.z))
+      this.transition = playBoardingWalk()
+      await this.transition
+      const step = Vector3.create(start.x + (landing.x - start.x) * 0.55,
+        Math.max(start.y, landing.y) + 0.25, start.z + (landing.z - start.z) * 0.55)
+      this.transition = movePlayerTo({ newRelativePosition: step, duration: 0.35, avatarTarget: facing })
+      const first = await this.transition as { success?: boolean }
+      if (first.success === false) throw new Error('The dock step was interrupted.')
+      if (operation !== this.operation) return false
+      this.transition = movePlayerTo({ newRelativePosition: landing, duration: 0.45, avatarTarget: facing })
+      const result = await this.transition as { success?: boolean }
+      if (result.success === false) throw new Error('The dock landing was interrupted.')
+      if (operation !== this.operation) return false
+      await this.view.releaseLocalFish(id, false)
+      await stopEmote({})
+      const settled = await new Promise<boolean>(resolve => {
+        let elapsed = 0, stable = 0
+        const check = (dt: number): void => {
+          if (operation !== this.operation) { engine.removeSystem(check); resolve(false); return }
+          const p = Transform.getOrNull(engine.PlayerEntity)?.position
+          elapsed += dt
+          stable = p && Math.hypot(p.x - landing.x, p.z - landing.z) < 0.8
+            && Math.abs(p.y - landing.y) < 0.6 ? stable + dt : 0
+          if (stable < 0.2 && elapsed < 2) return
+          engine.removeSystem(check); resolve(stable >= 0.2)
+        }
+        engine.addSystem(check)
+      })
+      if (operation !== this.operation) return false
+      if (!settled) throw new Error('Could not settle on the dock.')
+      this.fishId = undefined
+      this.restoreControls()
+      this.phase = 'lobby'
+      console.log('[DOCK] Stepped onto platform; parking fish.', id)
+      return true
+    } catch (error) {
+      if (operation !== this.operation) return false
+      console.error('[DOCK] Dismount failed.', String(error))
+      await this.returnToLobby()
+      return false
+    }
+  }
+
+  private restoreControls(): void {
+    if (this.previousInput) InputModifier.createOrReplace(engine.PlayerEntity, this.previousInput)
+    else InputModifier.deleteFrom(engine.PlayerEntity)
+    if (this.previousLocomotion) AvatarLocomotionSettings.createOrReplace(engine.PlayerEntity, this.previousLocomotion)
+    else AvatarLocomotionSettings.deleteFrom(engine.PlayerEntity)
   }
 
   async returnToLobby(): Promise<void> {
     if (this.phase === 'returning') return
-    this.phase = 'returning'
+    // Emergency recovery can start in lobby state after a preview reload.
+    if (this.phase === 'lobby') {
+      this.previousInput = InputModifier.getOrNull(engine.PlayerEntity)
+      this.previousLocomotion = AvatarLocomotionSettings.getOrNull(engine.PlayerEntity)
+    }
+    ++this.operation
+    this.phase = 'returning'; this.readyToRide = false
+    InputModifier.createOrReplace(engine.PlayerEntity, { mode: InputModifier.Mode.Standard({ disableAll: true }) })
     try {
-      const moved = await movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: LOBBY_LOOK_AT })
-      if (!moved.success) await movePlayerTo({ newRelativePosition: LOBBY, cameraTarget: LOBBY_LOOK_AT })
+      if (this.fishId !== undefined) await this.view.releaseLocalFish(this.fishId)
+      await this.transition.catch(() => {})
+      await stopEmote({})
+      await landAtLobby()
     } catch (error) {
       console.error('[CLIENT] Lobby return needs retry.', String(error))
     } finally {
-      if (MainCamera.has(engine.CameraEntity)) MainCamera.getMutable(engine.CameraEntity).virtualCameraEntity = undefined
-      if (this.camera !== undefined) engine.removeEntity(this.camera)
-      if (this.target !== undefined) engine.removeEntity(this.target)
-      this.camera = this.target = undefined
       this.fishId = undefined
-      if (this.previousInput) InputModifier.createOrReplace(engine.PlayerEntity, this.previousInput)
-      else InputModifier.deleteFrom(engine.PlayerEntity)
-      if (this.previousTouch) TouchScreenControls.createOrReplace(engine.RootEntity, {
-        ...this.previousTouch, touchInputs: this.previousTouch.touchInputs.map(input => ({ ...input }))
-      })
-      else TouchScreenControls.deleteFrom(engine.RootEntity)
+      this.restoreControls()
       this.phase = 'lobby'
     }
   }

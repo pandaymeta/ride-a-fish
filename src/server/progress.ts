@@ -1,11 +1,15 @@
+import { completeTutorialLesson, readTutorial, TUTORIAL_FISH, tutorialDialogue } from '../shared/tutorial'
 import { Storage } from '@dcl/sdk/server'
 import { PlayerProfile, Progress } from '../shared/messages'
+import { SPECIES } from '../shared/config'
 
 interface RecordState {
   progress: Progress; guest: boolean; revision: number; savedRevision: number; saving: boolean
   peak: number; result: string
 }
-const KEY = 'ride-a-fish-progress-v1'
+const KEY = 'ride-a-fish-progress-v3'
+const PREVIOUS_KEY = 'ride-a-fish-progress-v2'
+const LEGACY_KEY = 'ride-a-fish-progress-v1'
 
 export class ProgressStore {
   readonly players = new Map<string, RecordState>()
@@ -23,12 +27,18 @@ export class ProgressStore {
   private async read(address: string, guest: boolean): Promise<boolean> {
     try {
       const raw = guest ? null : await Storage.player.get<Progress>(address, KEY)
-      // A failed read never becomes a fresh save and cannot overwrite a real collection.
-      const progress: Progress = raw === null ? { version: 1, counts: [0, 0, 0], largest: [0, 0, 0], best: 0 }
-        : { version: 1, counts: this.numbers(raw.counts), largest: this.numbers(raw.largest),
-          best: this.integer(raw.best) }
+      const previous = !guest && raw === null ? await Storage.player.get<Progress>(address, PREVIOUS_KEY) : null
+      const source = raw ?? previous
+      const legacy = !guest && source === null ? await Storage.player.get<Progress>(address, LEGACY_KEY) : null
+      // Preserve v2 collections; failed reads never become fresh saves.
+      const progress: Progress = source === null ? { version: 3, cash: 0,
+        counts: this.numbers([0, this.integer(legacy?.counts?.[1]), 0, 0]),
+        largest: this.numbers([0, this.integer(legacy?.largest?.[1]), 0, 0]), best: this.integer(legacy?.best) }
+        : { version: 3, cash: this.integer(source.cash ?? source.food), counts: this.numbers(source.counts),
+          largest: this.numbers(source.largest), best: this.integer(source.best) }
+      progress.tutorial = readTutorial(source?.tutorial)
       this.players.set(address, { progress, guest, revision: 0, savedRevision: 0, saving: false,
-        peak: 0, result: 'Enter the floor circle. Collect smaller fish. Avoid bigger rival fish.' })
+        peak: 0, result: 'Find your Clownfish at the dock and press E to ride. Collect smaller fish and avoid larger predators.' })
       return true
     } catch (error) {
       console.error('[SERVER] Collection load failed; preserving existing storage.', String(error))
@@ -36,9 +46,34 @@ export class ProgressStore {
     }
   }
 
-  start(address: string): void {
+  lesson(address: string, bit: number): boolean {
     const p = this.players.get(address)
-    if (p) { p.peak = 1; p.result = '' }
+    if (!p || !completeTutorialLesson(p.progress.tutorial!, bit)) return false
+    p.revision++
+    return true
+  }
+
+  needsFirstCatch(address: string): boolean {
+    const tutorial = this.players.get(address)?.progress.tutorial
+    return !!tutorial && (tutorial.steps & TUTORIAL_FISH) === 0
+  }
+
+  dialogue(address: string): number | undefined {
+    const p = this.players.get(address)
+    return p ? tutorialDialogue(p.progress.tutorial!) : undefined
+  }
+
+  acknowledgeGuide(address: string, kind: number): boolean {
+    const p = this.players.get(address)
+    if (!p || this.dialogue(address) !== kind) return false
+    p.progress.tutorial!.dialogues |= 1 << kind
+    p.revision++
+    return true
+  }
+
+  start(address: string, mass = 1): void {
+    const p = this.players.get(address)
+    if (p) { p.peak = mass; p.result = '' }
   }
 
   grow(address: string, mass: number): void {
@@ -48,9 +83,17 @@ export class ProgressStore {
     if (mass > p.progress.best) { p.progress.best = mass; p.revision++ }
   }
 
+  collectCash(address: string, amount: number): number {
+    const p = this.players.get(address)
+    if (!p || !Number.isInteger(amount) || amount <= 0) return p?.progress.cash ?? 0
+    p.progress.cash = this.integer(p.progress.cash) + amount
+    p.revision++
+    return p.progress.cash
+  }
+
   catch(address: string, species: number, mass: number): boolean {
     const p = this.players.get(address)
-    if (!p || species < 0 || species > 2) return false
+    if (!p || species < 0 || species >= SPECIES.length) return false
     const fresh = p.progress.counts[species] === 0
     p.progress.counts[species]++
     p.progress.largest[species] = Math.max(p.progress.largest[species], mass)
@@ -66,7 +109,8 @@ export class ProgressStore {
   profile(address: string): PlayerProfile | undefined {
     const p = this.players.get(address)
     if (!p) return undefined
-    return { counts: [...p.progress.counts], largest: [...p.progress.largest], best: p.progress.best,
+    return { tutorialSteps: p.progress.tutorial!.steps, tutorialDialogues: p.progress.tutorial!.dialogues,
+      cash: this.integer(p.progress.cash), counts: [...p.progress.counts], largest: [...p.progress.largest], best: p.progress.best,
       peak: p.peak, guest: p.guest, saved: !p.guest && p.savedRevision === p.revision, result: p.result }
   }
 
@@ -75,7 +119,7 @@ export class ProgressStore {
     if (!p || p.guest || p.saving || p.savedRevision === p.revision) return
     p.saving = true
     const revision = p.revision
-    const snapshot: Progress = { ...p.progress, counts: [...p.progress.counts], largest: [...p.progress.largest] }
+    const snapshot: Progress = { ...p.progress, tutorial: { ...p.progress.tutorial! }, counts: [...p.progress.counts], largest: [...p.progress.largest] }
     try {
       if (await Storage.player.set(address, KEY, snapshot)) p.savedRevision = revision
       else console.error('[SERVER] Collection save pending; will retry.')
@@ -88,6 +132,6 @@ export class ProgressStore {
     return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
   }
   private numbers(value: unknown): number[] {
-    return [0, 1, 2].map(i => this.integer(Array.isArray(value) ? value[i] : 0))
+    return SPECIES.map((_, i) => this.integer(Array.isArray(value) ? value[i] : 0))
   }
 }

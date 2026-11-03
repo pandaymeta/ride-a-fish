@@ -1,5 +1,10 @@
 export const actions = {
+  acknowledgeGuide: () => {},
   returnToLobby: () => {},
-  toggleIndex: () => {}
+  toggleIndex: () => {},
+  closeIndex: () => {},
+  selectIndexFish: (_slot: number) => {},
+  selectClownfish: () => {},
+  selectAmberDarter: () => {}
 }
 
