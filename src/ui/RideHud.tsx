@@ -1,6 +1,7 @@
 /** @jsx ReactEcs.createElement */
 import ReactEcs, { UiEntity } from '@dcl/sdk/react-ecs'
 import { actions } from '../client/state'
+import { COIN_TEXTURE, INDEX_ICON, textureReady } from '../client/startupTextures'
 import { ArcadeText } from '../client/arcadeText'
 import { FishIndexBook } from './FishIndexBook'
 import { TutorialHud } from './TutorialHud'
@@ -17,7 +18,7 @@ export interface State {
   sharkTitle: string; sharkTitleSize: number; sharkPanelUvs: number[]; sharkMetric: string; sharkRarity: string
   sharkTint: { r: number; g: number; b: number; a: number }; sharkPanel: { r: number; g: number; b: number; a: number }; sharkRarityColor: { r: number; g: number; b: number; a: number }
   cash: string; cashFontSize: number; cashIconSize: number; collectionFontSize: number; indexIconSize: number
-  cashRight: `${number}%`; cashBottom: number; cashTextWidth: number; indexRight: `${number}%`; indexBottom: number
+  cashRight: `${number}%`; cashTop: number; cashTextWidth: number; indexRight: `${number}%`; indexTop: number
   cashTint: { r: number; g: number; b: number; a: number }; indexTint: { r: number; g: number; b: number; a: number }
   phase: string; mass: string; collection: string; save: string; notice: string; result: string
   best: string; lime: string; puffer: string; tuna: string; grouper: string; shark: string
@@ -37,7 +38,7 @@ export const state: State = {
   sharkTitle: '???', sharkTitleSize: 36, sharkPanelUvs: [0.673828125,0.048828125,0.673828125,0.326171875,0.951171875,0.326171875,0.951171875,0.048828125], sharkMetric: '1,000', sharkRarity: 'Secret',
   sharkTint: { r: 0, g: 0, b: 0, a: 1 }, sharkPanel: { r: 1, g: 1, b: 1, a: 1 }, sharkRarityColor: { r: 0.9, g: 0.95, b: 1, a: 1 },
   cash: '0', cashFontSize: 48, cashIconSize: 60, collectionFontSize: 22, indexIconSize: 96,
-  cashRight: '4%', cashBottom: 112, cashTextWidth: 36, indexRight: '4%', indexBottom: 196,
+  cashRight: '2%', cashTop: 14, cashTextWidth: 36, indexRight: '0.5%', indexTop: 74,
   cashTint: { r: 0.06, g: 0.24, b: 0.13, a: 0.98 }, indexTint: { r: 0.27, g: 0.8, b: 0.96, a: 1 },
   phase: 'Welcome to Ride A Fish', mass: 'Walk to your Clownfish at the dock',
   collection: 'Fish Index  0 / 4', save: 'Connecting to the sea…',
@@ -64,14 +65,18 @@ export function RideHud() {
     <UiEntity uiTransform={{ width: 560, height: 40, positionType: 'absolute', position: { left: '50%', bottom: 28 }, margin: { left: -280 }, display: state.boardingDisplay, pointerFilter: 'none' }}>
       <ArcadeText value={state.boardingMessage} width={560} height={40} fontSize={22} />
     </UiEntity>
-    <UiEntity uiTransform={{ width: 360, height: 64, positionType: 'absolute', position: { right: state.cashRight, bottom: state.cashBottom }, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', pointerFilter: 'none' }}>
+    <UiEntity uiTransform={{ width: 360, height: 64, positionType: 'absolute', position: { right: state.cashRight, top: state.cashTop }, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', pointerFilter: 'none' }}>
       <UiEntity uiTransform={{ width: state.cashTextWidth, height: 64 }}>
         <ArcadeText value={state.cash} width={state.cashTextWidth} height={64} fontSize={state.cashFontSize} align="left" color={{ r: 1, g: 0.8, b: 0.24, a: 1 }} outlineColor={{ r: 0.3, g: 0.13, b: 0.035, a: 1 }} />
       </UiEntity>
-      <UiEntity uiTransform={{ width: state.cashIconSize, height: state.cashIconSize, margin: { left: 8 } }} uiBackground={{ texture: { src: 'assets/Images/golden-coin.png' }, textureMode: 'stretch' }} />
+      {textureReady(COIN_TEXTURE)
+        ? <UiEntity uiTransform={{ width: state.cashIconSize, height: state.cashIconSize, margin: { left: 8 } }} uiBackground={{ texture: { src: COIN_TEXTURE }, textureMode: 'stretch' }} />
+        : <ArcadeText value="Coins" width={state.cashIconSize + 16} height={64} fontSize={18} />}
     </UiEntity>
-    <UiEntity uiTransform={{ width: 116, height: 116, positionType: 'absolute', position: { right: state.indexRight, bottom: state.indexBottom }, justifyContent: 'center', alignItems: 'center' }} onMouseDown={() => toggleIndex()}>
-      <UiEntity uiTransform={{ width: state.indexIconSize, height: state.indexIconSize }} uiBackground={{ texture: { src: 'assets/Images/ui/index-book-parchment.png' }, textureMode: 'stretch' }} />
+    <UiEntity uiTransform={{ width: 116, height: 116, positionType: 'absolute', position: { right: state.indexRight, top: state.indexTop }, justifyContent: 'center', alignItems: 'center' }} onMouseDown={() => toggleIndex()}>
+      {textureReady(INDEX_ICON)
+        ? <UiEntity uiTransform={{ width: state.indexIconSize, height: state.indexIconSize }} uiBackground={{ texture: { src: INDEX_ICON }, textureMode: 'stretch' }} />
+        : <ArcadeText value="Fish Index" width={116} height={48} fontSize={20} />}
     </UiEntity>
     <UiEntity uiTransform={{ width: '100%', height: '100%', positionType: 'absolute', position: { left: 0, top: 0 }, display: state.indexDisplay, pointerFilter: 'block' }} uiBackground={{ color: { r: .02, g: .035, b: .07, a: .36 } }}>
       <FishIndexBook />

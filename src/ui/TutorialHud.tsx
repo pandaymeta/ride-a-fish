@@ -4,6 +4,7 @@ import { useInteraction } from './interaction'
 import { actions } from '../client/state'
 import { TutorialControls } from './TutorialControls'
 import { TutorialQuestRow } from './TutorialQuestRow'
+import { GUIDE_BUTTON, GUIDE_FRAME, GUIDE_NAMEPLATE, textureReady } from '../client/startupTextures'
 
 export interface State {
   questVisible: boolean; dialogueVisible: boolean
@@ -39,7 +40,9 @@ export function TutorialHud() {
   const button = useInteraction({
     base: { uiTransform: { width: '38%', minWidth: 150, height: '24%', positionType: 'absolute', position: { bottom: '10%' },
       alignSelf: 'center', justifyContent: 'center', alignItems: 'center' },
-      uiBackground: { texture: { src: 'assets/Images/ui/rean/button-angular.png' }, textureMode: 'stretch', color: { r: 1, g: 1, b: 1, a: 1 } } },
+      uiBackground: textureReady(GUIDE_BUTTON)
+        ? { texture: { src: GUIDE_BUTTON }, textureMode: 'stretch' }
+        : { color: { r: .99, g: .92, b: .80, a: 1 } } },
     hover: { uiBackground: { color: { r: 1, g: .95, b: .8, a: 1 } } },
     press: { uiBackground: { color: { r: .88, g: .79, b: .63, a: 1 } } }
   })
@@ -57,10 +60,12 @@ export function TutorialHud() {
     <TutorialControls />
     <UiEntity {...dialogue}>
       <UiEntity uiTransform={{ width: '41%', minWidth: 305, maxWidth: '94%', height: '100%', flexDirection: 'column', alignItems: 'center', pointerFilter: 'block' }}
-        uiBackground={{ texture: { src: 'assets/Images/ui/rean/dialogue-angular.png' }, textureMode: 'stretch' }}>
+        uiBackground={textureReady(GUIDE_FRAME) ? { texture: { src: GUIDE_FRAME }, textureMode: 'stretch' }
+          : { color: { r: .99, g: .86, b: .69, a: 1 } }}>
         <UiEntity uiTransform={{ width: '25%', minWidth: 110, height: '34%', positionType: 'absolute', position: { top: '-17%' },
           alignSelf: 'center', justifyContent: 'center', alignItems: 'center', pointerFilter: 'none' }}
-          uiBackground={{ texture: { src: 'assets/Images/ui/rean/nameplate-angular.png' }, textureMode: 'stretch' }}>
+          uiBackground={textureReady(GUIDE_NAMEPLATE) ? { texture: { src: GUIDE_NAMEPLATE }, textureMode: 'stretch' }
+            : { color: { r: .98, g: .79, b: .57, a: 1 } }}>
           <Label value="<b>REAN</b>" font="serif" fontSize={26} color={{ r: .3, g: .14, b: .06, a: 1 }} textAlign="middle-center"
             uiTransform={{ width: '100%', height: '100%', pointerFilter: 'none' }} />
         </UiEntity>

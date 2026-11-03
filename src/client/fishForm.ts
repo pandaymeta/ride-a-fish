@@ -1,6 +1,7 @@
-import { AvatarLocomotionSettings, engine, InputModifier, MainCamera, Transform } from '@dcl/sdk/ecs'
+import { AvatarLocomotionSettings, ColliderLayer, engine, Entity, getWorldPosition, GltfContainer, InputModifier, MainCamera, Transform } from '@dcl/sdk/ecs'
 import { Vector3 } from '@dcl/sdk/math'
 import { movePlayerTo, stopEmote } from '~system/RestrictedActions'
+import { BOARDING_SPOTS } from '../shared/boarding'
 import { SEA_Y, SPEED } from '../shared/config'
 import { ArenaView } from './view'
 import { playBoardingWalk, playRiderSittingPose } from './riderPose'
@@ -15,6 +16,8 @@ export class FishForm {
   private transition: Promise<unknown> = Promise.resolve()
   private previousInput: ReturnType<typeof InputModifier.getOrNull> = null
   private previousLocomotion: ReturnType<typeof AvatarLocomotionSettings.getOrNull> = null
+
+  private dockMasks = new Map<Entity, Pick<ReturnType<typeof GltfContainer.get>, 'visibleMeshesCollisionMask' | 'invisibleMeshesCollisionMask'>>()
 
   constructor(private view: ArenaView) {
     // Release a legacy scripted camera when hot-reloading into native swimming.
@@ -48,6 +51,7 @@ export class FishForm {
       const first = await this.transition as { success?: boolean }
       if (first.success === false) throw new Error('The boarding step was interrupted.')
       if (operation !== this.operation) return false
+      this.ignoreDockCollision()
       this.transition = movePlayerTo({ newRelativePosition: seat, duration: 0.5, avatarTarget: facing })
       const landed = await this.transition as { success?: boolean }
       if (landed.success === false) throw new Error('The boarding landing was interrupted.')
@@ -95,6 +99,7 @@ export class FishForm {
       // Stop reseating/swimming, but retain the support collider until the avatar reaches the dock.
       await this.view.pauseLocalFish()
       if (operation !== this.operation) return false
+      this.restoreDockCollision()
       await stopEmote({})
       const start = { ...Transform.get(engine.PlayerEntity).position }
       const facing = Vector3.create(landing.x + (landing.x - start.x), landing.y,
@@ -141,6 +146,31 @@ export class FishForm {
     }
   }
 
+  private ignoreDockCollision(): void {
+    // A plank must not take over from the moving seat as the avatar's support.
+    for (const [entity, model] of engine.getEntitiesWith(GltfContainer, Transform)) {
+      if (!model.src.endsWith('/wooden_plank_walkable.glb') && !model.src.endsWith('/wooden_post.glb')) continue
+      const p = getWorldPosition(engine, entity)
+      if (!BOARDING_SPOTS.some(spot => Math.hypot(spot.x - p.x, spot.z - p.z) < 8)) continue
+      const { visibleMeshesCollisionMask, invisibleMeshesCollisionMask } = model
+      const visible = visibleMeshesCollisionMask ?? 0
+      const invisible = invisibleMeshesCollisionMask ?? 3
+      if (!((visible | invisible) & ColliderLayer.CL_PHYSICS)) continue
+      this.dockMasks.set(entity, { visibleMeshesCollisionMask, invisibleMeshesCollisionMask })
+      const mutable = GltfContainer.getMutable(entity)
+      mutable.visibleMeshesCollisionMask = visible & ~ColliderLayer.CL_PHYSICS
+      mutable.invisibleMeshesCollisionMask = invisible & ~ColliderLayer.CL_PHYSICS
+    }
+  }
+
+  private restoreDockCollision(): void {
+    for (const [entity, masks] of this.dockMasks) {
+      const model = GltfContainer.getMutableOrNull(entity)
+      if (model) Object.assign(model, masks)
+    }
+    this.dockMasks.clear()
+  }
+
   private restoreControls(): void {
     if (this.previousInput) InputModifier.createOrReplace(engine.PlayerEntity, this.previousInput)
     else InputModifier.deleteFrom(engine.PlayerEntity)
@@ -167,6 +197,7 @@ export class FishForm {
       console.error('[CLIENT] Lobby return needs retry.', String(error))
     } finally {
       this.fishId = undefined
+      this.restoreDockCollision()
       this.restoreControls()
       this.phase = 'lobby'
     }

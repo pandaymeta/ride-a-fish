@@ -43,6 +43,6 @@ export function pickupTarget(cash: boolean, canvas: PickupCanvas): ScreenPoint {
   const inset = right.endsWith('%') ? parseFloat(right) * canvas.safeWidth / 100 : parseFloat(right)
   return {
     x: canvas.left + canvas.safeWidth - inset - (cash ? state.cashIconSize / 2 : 58),
-    y: canvas.top + canvas.safeHeight - (cash ? state.cashBottom + 32 : state.indexBottom + 58)
+    y: canvas.top + (cash ? state.cashTop + 32 : state.indexTop + 58)
   }
 }

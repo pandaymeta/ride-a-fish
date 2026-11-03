@@ -25,7 +25,7 @@ export const room = registerMessages({
   boardingStatus: Schemas.Map({ position: Schemas.Int, slot: Schemas.Int }),
   selectSkin: Schemas.Map({ skin: Schemas.Int }),
   skinSelected: Schemas.Map({ skin: Schemas.Int }),
-  leave: Schemas.Map({}),
+  leave: Schemas.Map({ fishId: Schemas.Int }),
   jump: Schemas.Map({ fishId: Schemas.Int }),
   eaten: Schemas.Map({ eventId: Schemas.String, byShark: Schemas.Boolean }),
   sharkTouch: Schemas.Map({ eater: Schemas.Int, prey: Schemas.Int, tick: Schemas.Int, sharkPose: contactPose, riderPose: contactPose }),

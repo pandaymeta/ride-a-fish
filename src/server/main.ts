@@ -127,8 +127,10 @@ export function startServer(): void {
       sendProfile(address); boarding.status(address)
     }
   })
-  room.onMessage('leave', (_, context) => {
-    if (context) { const address = context.from.toLowerCase(); boarding.remove(address); arena.leave(address) }
+  room.onMessage('leave', (data, context) => {
+    if (!context) return
+    const address = context.from.toLowerCase(), fish = arena.getMount(address)
+    if (fish?.id === data.fishId && fish.boardState === 2) arena.leave(address)
   })
 
   room.onMessage('jump', (data, context) => {

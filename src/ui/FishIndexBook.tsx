@@ -1,6 +1,7 @@
 /** @jsx ReactEcs.createElement */
 import ReactEcs, { UiEntity, Label } from '@dcl/sdk/react-ecs'
 import { actions } from '../client/state'
+import { COIN_TEXTURE, INDEX_BOOK, textureReady } from '../client/startupTextures'
 import { FishBookTile } from './FishBookTile'
 
 export interface State {
@@ -680,9 +681,14 @@ function closeBook() { actions.closeIndex() }
 
 /** @ui-component */
 export function FishIndexBook() {
-  return <UiEntity uiTransform={{ width: state.width, height: state.height, positionType: 'absolute', position: { left: '50%', top: '50%' }, margin: { left: state.offsetX, top: state.offsetY }, pointerFilter: 'block' }} uiBackground={{ texture: { src: 'assets/Images/ui/book/parchment-book-uniform.png' }, textureMode: 'stretch' }}>
+  return <UiEntity uiTransform={{ width: state.width, height: state.height, positionType: 'absolute', position: { left: '50%', top: '50%' }, margin: { left: state.offsetX, top: state.offsetY }, pointerFilter: 'block' }}
+    uiBackground={textureReady(INDEX_BOOK) ? { texture: { src: INDEX_BOOK }, textureMode: 'stretch' }
+      : { color: { r: .99, g: .86, b: .69, a: 1 } }}>
     <Label value={state.selectedName} font="serif" fontSize={state.nameFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-center" textWrap="nowrap" uiTransform={{ width: state.nameW, height: state.nameH, positionType: 'absolute', position: { left: state.nameX, top: state.nameY }, pointerFilter: 'none' }} />
-    <UiEntity uiTransform={{ width: state.portraitSize, height: state.portraitSize, positionType: 'absolute', position: { left: state.portraitX, top: state.portraitY }, pointerFilter: 'none' }} uiBackground={{ texture: { src: state.portrait }, textureMode: 'stretch', uvs: state.portraitUvs }} />
+    {textureReady(state.portrait)
+      ? <UiEntity uiTransform={{ width: state.portraitSize, height: state.portraitSize, positionType: 'absolute', position: { left: state.portraitX, top: state.portraitY }, pointerFilter: 'none' }} uiBackground={{ texture: { src: state.portrait }, textureMode: 'stretch', uvs: state.portraitUvs }} />
+      : <Label value="?" font="serif" fontSize={state.portraitSize * .35} color={{ r: .4, g: .24, b: .11, a: 1 }} textAlign="middle-center"
+          uiTransform={{ width: state.portraitSize, height: state.portraitSize, positionType: 'absolute', position: { left: state.portraitX, top: state.portraitY }, pointerFilter: 'none' }} />}
     <Label value={state.rarity} font="serif" fontSize={state.rarityFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-center" textWrap="nowrap" uiTransform={{ width: state.rarityW, height: state.rarityH, positionType: 'absolute', position: { left: state.rarityX, top: state.rarityY }, pointerFilter: 'none' }} />
     <Label value={"<b>FISH INDEX</b>"} font="serif" fontSize={state.titleFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-center" textWrap="nowrap" uiTransform={{ width: state.titleW, height: state.titleH, positionType: 'absolute', position: { left: state.titleX, top: state.titleY }, pointerFilter: 'none' }} />
     <Label value={state.discovered} font="serif" fontSize={state.discoveryFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-center" textWrap="nowrap" uiTransform={{ width: state.discoveryW, height: state.discoveryH, positionType: 'absolute', position: { left: state.discoveryX, top: state.discoveryY }, pointerFilter: 'none' }} />
@@ -690,7 +696,7 @@ export function FishIndexBook() {
     <Label value={state.caught} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY0 }, pointerFilter: 'none' }} />
     <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY1 }, pointerFilter: 'none' }} uiBackground={{ texture: { src: 'assets/Images/ui/book/stat-ruler.png' }, textureMode: 'stretch' }} />
     <Label value={state.largest} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY1 }, pointerFilter: 'none' }} />
-    <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY2 }, pointerFilter: 'none' }} uiBackground={{ texture: { src: 'assets/Images/golden-coin.png' }, textureMode: 'stretch' }} />
+    <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY2 }, pointerFilter: 'none' }} uiBackground={textureReady(COIN_TEXTURE) ? { texture: { src: COIN_TEXTURE }, textureMode: 'stretch' } : undefined} />
     <Label value={state.cashValue} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY2 }, pointerFilter: 'none' }} />
     <Label value={state.note} font="serif" fontSize={state.noteFont} color={{ r: .47, g: .30, b: .16, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.noteW, height: state.noteH, positionType: 'absolute', position: { left: state.noteX, top: state.noteY }, pointerFilter: 'none' }} />
     <UiEntity uiTransform={{ width: state.tileW, height: state.rowH0, positionType: 'absolute', position: { left: state.col0, top: state.row0 } }}>

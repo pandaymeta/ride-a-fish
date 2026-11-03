@@ -65,7 +65,7 @@ export class FishMount {
     constrainToLagoon(rootPose.position, clearance, clearance)
     const platform = Transform.getMutable(this.platform)
     if (Math.abs(platform.position.y - (this.seatHeight - 0.05)) > 0.001) platform.position.y = this.seatHeight - 0.05
-    if (!this.checking || (!enabled && !this.boarding)) return
+    if (!this.checking) return
     this.retryWait = Math.max(0, this.retryWait - dt)
     if (this.boarding && (this.boardTime += dt) > 10) { this.fail(); return }
     if (this.placement) return

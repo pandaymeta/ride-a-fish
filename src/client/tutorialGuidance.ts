@@ -30,8 +30,7 @@ export class TutorialGuidance {
     GltfNodeModifiers.create(this.arrow, { modifiers: [{ path: '', castShadows: false }] })
     Billboard.create(this.arrow, { billboardMode: 7 })
     VisibilityComponent.create(this.arrow, { visible: false })
-    AssetLoad.create(this.arrow, { assets: ['assets/Images/ui/rean/dialogue-angular.png', 'assets/Images/ui/rean/nameplate-angular.png',
-      'assets/Images/ui/rean/button-angular.png', 'assets/Images/ui/rean/tutorial-arrow-rounded-proportional.png'] })
+    AssetLoad.create(this.arrow, { assets: ['assets/Images/ui/rean/tutorial-arrow-rounded-proportional.png'] })
   }
 
   update(dt: number, profile: PlayerProfile | undefined, snapshot: ArenaSnapshot, mine: FishState | undefined,

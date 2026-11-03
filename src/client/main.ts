@@ -18,14 +18,15 @@ import { ArenaView } from './view'
 import { PickupEffects } from './pickupEffects'
 import { PowerupClient } from './powerups'
 import { EatenSound } from './eatenSound'
-import { preloadHudAssets, updateIndexProfile } from './indexPanel'
+import { setupIndex, updateIndexProfile } from './indexPanel'
 import { startOceanFoam } from './oceanFoam'
 import { SandFootprints } from './sandFootprints'
 import { StoolSeating } from './stoolSeating'
+import { waitingForTextures } from './startupTextures'
 
 export function startClient(): void {
   startOceanFoam()
-  preloadHudAssets()
+  setupIndex()
   setupUi()
   const pickups = new PickupEffects()
   const powerups = new PowerupClient()
@@ -35,7 +36,8 @@ export function startClient(): void {
   let snapshot: ArenaSnapshot = { tick: 0, fish: [], food: [] }
   let profile: PlayerProfile | undefined
   let address = '', lastSnapshot = 0, helloClock = 0, inputClock = 0, enterClock = 0
-  let entering = false, pendingReturn = false, noticeUntil = 0
+  let entering = false, noticeUntil = 0
+  let pendingReturn: number | undefined, failedBoarding: number | undefined
   let queuePosition = 0, seatAckClock = 0
   let dockPending = false, dockRequestedAt = 0, dockAckClock = 0
   let dockedFish: number | undefined
@@ -66,8 +68,10 @@ export function startClient(): void {
   actions.toggleIndex = () => { if (tutorial.busy) return; state.indexDisplay = state.indexDisplay === 'flex' ? 'none' : 'flex' }
   actions.returnToLobby = () => {
     stools.cancel()
-    pendingReturn = true
-    void room.send('leave', {})
+    if (form.phase === 'fish' && form.fishId !== undefined) {
+      pendingReturn = form.fishId
+      void room.send('leave', { fishId: pendingReturn })
+    }
     void form.returnToLobby()
   }
   room.onMessage('boardingStatus', data => { queuePosition = data.position })
@@ -123,22 +127,23 @@ export function startClient(): void {
     snapshot = data; lastSnapshot = Date.now()
     view.apply(data, form.fishId)
     powerups.apply(data.powerups ?? [], data.tick)
+    if (mine?.id !== pendingReturn || mine?.boardState !== 2) pendingReturn = undefined
+    if (mine?.id !== failedBoarding || mine?.boardState === 0) failedBoarding = undefined
     if (!mine) {
       entering = false
       dockPending = false; dockedFish = undefined
-      pendingReturn = false
       if (form.phase === 'fish' || form.phase === 'transforming' || form.phase === 'docking') {
         void form.returnToLobby()
         state.indexDisplay = 'none'
       }
     } else if (mine.boardState === 0 && dockedFish === mine.id) {
       dockedFish = undefined; dockPending = false
-    } else if (mine.boardState === 1 && form.phase === 'lobby' && !pendingReturn) {
+    } else if (mine.boardState === 1 && form.phase === 'lobby' && failedBoarding !== mine.id) {
       entering = false
       state.indexDisplay = 'none'
       void form.transform(mine.id).then(ok => {
         if (ok) void room.send('seated', { fishId: mine.id })
-        else { pendingReturn = true; void room.send('leave', {}) }
+        else if (snapshot.fish.some(f => f.id === mine.id && f.boardState === 1)) failedBoarding = mine.id
       })
     } else if (mine.boardState === 2) {
       entering = false
@@ -187,7 +192,7 @@ export function startClient(): void {
     if (form.phase === 'lobby' && onPlatform(playerPosition)) recoveryArmed = true
     // Normal fish troughs stay above this. A rider below it has lost support,
     // including after a reload where the previous island-visit flag is gone.
-    const deepWater = form.phase !== 'docking' && playerPosition.y < SEA_Y - 0.75
+    const deepWater = (form.phase === 'lobby' || form.phase === 'fish') && playerPosition.y < SEA_Y - 0.75
     const fellFromIsland = form.phase === 'lobby' && recoveryArmed
       && !insideLobbyIsland(playerPosition.x, playerPosition.z) && playerPosition.y < STAGE.top - 1.5
     strandedClock = form.phase !== 'returning' && (deepWater || fellFromIsland) ? strandedClock + dt : 0
@@ -197,15 +202,18 @@ export function startClient(): void {
       notice('Returning you to the island…')
       actions.returnToLobby()
     }
-    if (pendingReturn && alive && inputClock >= 1) { inputClock = 0; void room.send('leave', {}) }
-    tutorial.update(dt, alive && !!profile && form.phase === 'lobby' && !entering && !dockPending && !stools.busy, state.indexDisplay === 'flex')
+    if (pendingReturn !== undefined && alive && inputClock >= 1) {
+      inputClock = 0; void room.send('leave', { fishId: pendingReturn })
+    }
+    const canInteract = alive && !!profile && !waitingForTextures()
+    tutorial.update(dt, canInteract && form.phase === 'lobby' && !entering && !dockPending && !stools.busy, state.indexDisplay === 'flex')
     powerups.updateControl(dt, mine, riding, alive, state.indexDisplay === 'flex')
     view.update(dt, mine?.mass ?? 1, mine?.id, riding, riding && alive && !dockPending, powerups.controls)
-    movementHints.update(alive && !!profile && profile.tutorialSteps !== TUTORIAL_COMPLETE, form.phase, riding, view.localRiderSeated && !view.awaitingMovementRelease,
+    movementHints.update(canInteract && profile?.tutorialSteps !== TUTORIAL_COMPLETE, form.phase, riding, view.localRiderSeated && !view.awaitingMovementRelease,
       tutorial.busy || stools.busy || entering || dockPending || state.indexDisplay === 'flex', playerPosition, view.localFishPosition, view.localFishAirborne)
     tutorial.navigate(dt, snapshot, mine, view.localFishPosition, riding && alive,
       (kind, id) => kind === 'food' || kind === 'fish' ? view.tutorialAvailable(kind, id) : powerups.tutorialAvailable(id))
-    dock.update(dt, mine, form.phase, form.readyToRide, alive && !!profile, entering || dockPending || tutorial.interacting, queuePosition, tutorial.fishArrowUnlocked)
+    dock.update(dt, mine, form.phase, form.readyToRide, canInteract, entering || dockPending || tutorial.interacting, queuePosition, tutorial.fishArrowUnlocked)
     dockExit.update(dt, mine, riding && alive && state.indexDisplay !== 'flex', dockPending)
     sharkContactClock += dt
     if (riding && alive && sharkContactClock >= 0.05) {

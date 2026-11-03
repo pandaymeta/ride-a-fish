@@ -53,7 +53,7 @@ export class PickupEffects {
   constructor() {
     const owner = engine.addEntity()
     Transform.create(owner)
-    AssetLoad.create(owner, { assets: ['assets/Images/golden-coin.png', ...ICONS] })
+    AssetLoad.create(owner, { assets: ICONS })
     ReactEcsRenderer.addUiRenderer(owner, () => this.render(), {
       virtualWidth: 1920, virtualHeight: 1080, screenInset: 'none', zIndex: 200
     })

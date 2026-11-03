@@ -3,7 +3,7 @@ import { AssetLoad, engine, Entity, GltfNodeModifiers, Material, MaterialTranspa
 
 import { FISH_MODELS } from '../shared/fishAssets'
 import { RIDER_SITTING_ANIMATION } from './riderPose'
-const SHIELD_TEXTURE = 'assets/Images/KOFTE/Fish_05-shield.jpg'
+import { SHIELD_TEXTURE, textureReady } from './startupTextures'
 
 export class FishPowerEffects {
   private shielded = false
@@ -13,10 +13,11 @@ export class FishPowerEffects {
   static preload(): void {
     const owner = engine.addEntity()
     Transform.create(owner)
-    AssetLoad.create(owner, { assets: [SHIELD_TEXTURE, FISH_MODELS.clownfish.model, RIDER_SITTING_ANIMATION] })
+    AssetLoad.create(owner, { assets: [FISH_MODELS.clownfish.model, RIDER_SITTING_ANIMATION] })
   }
 
   update(shield: boolean): void {
+    shield = shield && textureReady(SHIELD_TEXTURE)
     const shieldChanged = shield !== this.shielded
     if (shieldChanged) {
       this.shielded = shield

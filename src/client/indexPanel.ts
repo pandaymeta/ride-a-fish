@@ -1,10 +1,11 @@
-import { AssetLoad, engine, Transform } from '@dcl/sdk/ecs'
+import { engine } from '@dcl/sdk/ecs'
 import type { PlayerProfile } from '../shared/messages'
 import { COLLECTIBLE_SPECIES, collectedSpeciesCount, SPECIES } from '../shared/config'
 import { state as hud } from '../ui/RideHud'
 import { state as book } from '../ui/FishIndexBook'
 import { actions } from './state'
 import { pickupCanvas } from './pickupProjection'
+import { INDEX_SILHOUETTES } from './startupTextures'
 
 const LAYOUT = {
   "width": 1672,
@@ -82,7 +83,6 @@ const ENTRIES = [
   { species: 0, image: '07' }, { species: 1, image: '17' },
   { species: 2, image: '06' }, { species: 4, image: '20' }
 ]
-const SHAPES = ['07', '17', '06', '20', '05']
 const FUTURE_RARITIES = ['Epic', 'Legendary', 'Mythic', 'Exotic', 'Common', 'Uncommon', 'Rare']
 let profile: PlayerProfile | undefined
 let selected = -1
@@ -93,7 +93,7 @@ function sprite(slot: number): { src: string; uvs: number[] } {
   const entry = ENTRIES[slot]
   if (entry && (profile?.counts[entry.species] ?? 0) > 0) return { src: 'assets/Images/ui/book/fish-' + entry.image + '-uniform.png', uvs: [0, 0, 0, 1, 1, 1, 1, 0] }
   const x = slot % 8 / 8, y = Math.floor(slot / 8) / 4
-  return { src: 'assets/Images/ui/book/fish-silhouettes-uniform.png', uvs: [x, 1-y-.25, x, 1-y, x+.125, 1-y, x+.125, 1-y-.25] }
+  return { src: INDEX_SILHOUETTES, uvs: [x, 1-y-.25, x, 1-y, x+.125, 1-y, x+.125, 1-y-.25] }
 }
 
 function resize(): void {
@@ -107,13 +107,7 @@ function resize(): void {
   Object.assign(book, values)
 }
 
-export function preloadHudAssets(): void {
-  const loader = engine.addEntity()
-  Transform.create(loader)
-  AssetLoad.create(loader, { assets: ['assets/Images/golden-coin.png', 'assets/Images/ui/index-book-parchment.png',
-    'assets/Images/ui/lobby-house.png', 'assets/Images/ui/book/parchment-book-uniform.png',
-    ...SHAPES.map(id => 'assets/Images/ui/book/fish-' + id + '-uniform.png'), 'assets/Images/ui/book/fish-silhouettes-uniform.png',
-    'assets/Images/ui/book/fish-tile-uniform.png', 'assets/Images/ui/book/stat-hook.png', 'assets/Images/ui/book/stat-ruler.png', 'assets/Images/golden-coin.png'] })
+export function setupIndex(): void {
   actions.selectIndexFish = slot => {
     if (!Number.isInteger(slot) || slot < 0 || slot >= 25) return
     selected = slot; refresh()

@@ -5,7 +5,7 @@ import { isMobile } from '@dcl/sdk/platform'
 import { SEA_Y } from '../shared/config'
 import { distanceSquared } from '../shared/eating'
 import { FishState } from '../shared/messages'
-import { BOOST_MAX_MULTIPLIER, POWERUP_ICONS, POWERUP_MODELS,
+import { BOOST_MAX_MULTIPLIER, POWERUP_MODELS,
   PowerupGrant, PowerupState, powerupEatRadius, SHIELD_POWERUP } from '../shared/powerups'
 import { state as hud } from '../ui/PowerupHud'
 import { PowerupSounds } from './powerupSounds'
@@ -36,7 +36,7 @@ export class PowerupClient {
   constructor() {
     const loader = engine.addEntity()
     Transform.create(loader)
-    AssetLoad.create(loader, { assets: [...POWERUP_MODELS, ...POWERUP_ICONS] })
+    AssetLoad.create(loader, { assets: [...POWERUP_MODELS] })
   }
 
   apply(states: readonly PowerupState[], tick: number): void {
@@ -54,7 +54,7 @@ export class PowerupClient {
       if (this.views.has(powerup.id)) continue
       const entity = this.pool[powerup.kind].pop() ?? this.create(powerup.kind)
       const transform = Transform.getMutable(entity)
-      transform.position = Vector3.create(powerup.x, SEA_Y + 0.65, powerup.z)
+      transform.position = Vector3.create(powerup.x, SEA_Y + 0.03, powerup.z)
       transform.rotation = Quaternion.fromEulerDegrees(65 + powerup.id % 16, powerup.id * 137.507 % 360, 15 + powerup.id % 12)
       VisibilityComponent.createOrReplace(entity, { visible: !this.pending.has(powerup.id) })
       this.views.set(powerup.id, { entity, state: powerup })
