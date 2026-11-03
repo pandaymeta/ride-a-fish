@@ -6,9 +6,11 @@ Ride a fish around a tropical island. Eat green food and smaller fish to grow, e
 
 ## Play the sample
 
-Open the project in Decentraland Creator Hub and choose **Play → Desktop Client**. Press **E** near Rean for the tutorial, or beside your fish to board. Use **WASD** to swim and **Space** to jump. Press **E** at the dock to park your fish at its current size.
+The test scene is open for public testing in **entenium.dcl.eth**. [Play Ride A Fish](https://decentraland.org/jump?realm=entenium.dcl.eth)
 
-The test scene is playable locally. Public deployment to **entenium.dcl.eth** is pending.
+Press **E** near the NPC Guide for the tutorial, or beside your fish to board. Use **WASD** to swim and **Space** to jump. Press **E** at the dock to park your fish at its current size.
+
+To preview locally, open the project in Decentraland Creator Hub and choose **Play → Desktop Client**.
 
 ## Build
 

@@ -14,7 +14,7 @@
 |---|---|
 | Player promise | Ride a fish around a tropical island. Eat smaller fish, grow big enough to chase your rivals, and get back to the dock safely. |
 | Primary player | For players who like quick survival games and collecting creatures, whether they arrive alone or with friends. |
-| Current status | Playable local Decentraland sample. You can board, swim, grow, dodge the shark, dock, and open a Fish Index with four collectible species. Public test scene URL is pending. [Project repository](https://github.com/pandaymeta/ride-a-fish) |
+| Current status | The Decentraland sample is open for public testing. Board, swim, grow, dodge the shark, and dock. The Fish Index has four collectible species. [Play the test scene](https://decentraland.org/jump?realm=entenium.dcl.eth) · [Project repository](https://github.com/pandaymeta/ride-a-fish) |
 | Requested round | V0, first Creator Success application. |
 | Live at the end of V0 | In our World, players can ride, compete for fish, escape predators, and dock with their discoveries saved. |
 
@@ -22,14 +22,14 @@
 
 Ride a fish around a tropical island. Eat smaller fish, grow big enough to chase your rivals, and get back to the dock safely.
 
-We started with the eating and growth loop from our Roblox game, Little Fish. In Decentraland, we want you to feel the ride. Your own avatar stays in the seat as the fish banks, jumps, and grows beneath you.
+This game is an upgraded version of "Little Fish," a 2D single player experience we published on The Sandbox Game platform. In Decentraland, we want you to feel like you are actually riding the fish. Your own avatar sits on the fish as it turns, jumps, and grows beneath you.
 
 ## 2. First Minutes & How to Play
 
 | Time | Player experience |
 |---|---|
-| 0–5 seconds after control | You spawn on the island path. A movement hint appears and a red arrow points to Rean by the dock. |
-| 5–10 seconds | You walk toward the dock. Press E near Rean for a short welcome, or go straight to your fish. |
+| 0–5 seconds after control | You spawn on the island path. A movement hint appears and a red arrow points to the NPC Guide by the dock. |
+| 5–10 seconds | You walk towards the NPC Guide. Press E near NPC for a short welcome, and she will direct you to your fish. |
 | 10–60 seconds | Press E beside your fish to step aboard. Follow the white trail to green food, then to a fish you can eat. You see your fish grow. |
 | 1–3 minutes | You eat a smaller fish and discover it in the Index. A Speedbooster gives you a burst of speed. A Shield protects you from being eaten. |
 | 3–10 minutes | You choose whether to chase a rival, find another species, or head back before the shark catches you. |
@@ -37,11 +37,11 @@ We started with the eating and growth loop from our Roblox game, Little Fish. In
 
 **How to play**
 
-- Press E at the dock to ride.
+- Press E on fish to ride it.
 - Eat green food and smaller fish.
 - Escape bigger predators. Press E to dock.
 
-Rean's six-item checklist guides your first ride, food, fish, both power-ups in either order, and return to the dock. The arrows update as you play. The shark and other riders cannot eat you until you eat your first fish. You can dock early, and the movement and jump hints stop after the tutorial.
+The NPC Guide's six-item checklist guides your first ride, food, fish, both power-ups in either order, and return to the dock. The arrows update as you play. The shark and other riders cannot eat you until you eat your first fish. You can dock early, and the movement and jump hints stop after the tutorial.
 
 ## 3. Core Loop
 
@@ -61,26 +61,26 @@ The sample has 60 green food pickups, five Blue Tangs (size 2), two Reef Angelfi
 
 ## 4. Why Players Come Back
 
-**4.1 Next day** We expect players to return to hunt a fish still missing from their Index. In the planned version, they can also see when a rare fish is due and what wearable reward comes next.
+**4.1 Next day** Players can return to hunt a fish missing from their Index. Planned spawn timers will show when rare fish are due, and a future shop will let players save up for a favorite fish skin.
 
 **4.2 Progression** Eat a new species → save the discovery → pick a harder target → learn a better route or bring a friend to help find it.
 
 | When | What lasts and what you can do next | What others see |
 |---|---|---|
 | First visit | The Index keeps your first discoveries after defeat. Pick a missing fish for your next ride. | Your name and current fish size in the arena. |
-| First week | Plan a harder catch with what you have learned. The planned daily track rewards seven visits with a wearable set. | Planned wearables give players a way to show their progress. |
+| First week | Plan a harder catch with what you have learned. The planned shop will let you save coins for a fish skin. | Other riders can see the skin you equip. |
 | Week three onward | Planned fish windows and monthly events give collectors new targets. | Riders can meet for the same spawn and recognize familiar rivals. |
 
 You open the Index and see which fish you still need. A rider you remember from yesterday is heading out, so you try a different route to beat them to the next catch. You can lose the chase and still keep a discovery.
 
-Coins come from food and fish pickups. The sample tracks the balance. Spending is TBD. We will check that one pickup cannot pay twice.
+Coins come from food and fish pickups. The sample saves your balance. The planned shop will let you spend coins on fish skins.
 
 **4.3 Two return hooks**
 
 | Hook | Trigger | Why come back and how you know |
 |---|---|---|
 | The next discovery | The Index saves a species on its first catch. Planned spawns make higher rarities less likely, with one guaranteed Mythic every 30 minutes and one Secret every hour, on UTC boundaries. | The Index shows what you are missing. A shared map countdown will show the next guaranteed spawn so friends can meet for it. |
-| Seven days of rewards | Planned daily check-in, up to seven claims for a full wearable set. The reset time and missed-day rules are TBD. | The reward track shows which piece comes next so you can return on another day to claim it. |
+| Fish skins | The planned shop will sell fish skins for coins earned in the arena. | Pick a skin to save for and use it on future rides. |
 
 ## 5. Social by Design
 
@@ -90,7 +90,7 @@ Coins come from food and fish pickups. The sample tracks the balance. Spending i
 | If others leave | Solo players can ride, collect fish, and evade the Hammerhead. Human pursuit, contested catches, and rematches depend on other riders. |
 | Meeting players | The shared dock puts arrivals in one place. Names above riders make it easy to recognize a rival without using chat. |
 | Recognition across visits | You remember who chased you and how they moved. Seeing that rider again can change your route or give you a reason to challenge them. |
-| Player counts | Two riders are enough for a chase. Aim to test four first and work toward the configured ten-rider limit. Capacity is unverified. Invite the first group at one time so they arrive together. |
+| Player counts | Two riders are enough for a chase. The verified maximum is 10 riders. |
 | Drop in and out | Players board when a dock spot is available. The arena keeps running as riders join, dock, or leave. Test full dock slots and disconnects with the first group. |
 | Visible play | From the dock you can see a named rider grow, turn, and chase the fish that was just chasing them. |
 | Shareable moment | A tiny rider jumps out of the Hammerhead's path and lands in a white splash. |
@@ -112,7 +112,7 @@ Keep action prompts in thumb reach and leave the rider clear of overlays. Test b
 
 ## 7. World, Look & Story
 
-Rean welcomes you on a small tropical island with a wooden dock. The sea around it is the arena, and the dock gives you a safe place to stop and watch.
+The NPC Guide welcomes you on a small tropical island with a wooden dock. The sea around it is the arena, and the dock gives you a safe place to stop and watch.
 
 Use bright fish against blue water, clear size numbers, and a parchment Fish Index. The scene's signature is a visible avatar riding a growing fish, banking over the swell with a white wake behind it.
 
@@ -126,29 +126,25 @@ We plan to invite the first group through our existing contacts and share one Wo
 
 | Reference | What we take from it | What we change |
 |---|---|---|
-| Little Fish, Roblox | Our earlier arena makes each catch change the next hunt. Visible growth helps players read the food chain. | Bring that loop into a shared sea with a seated avatar and a safe dock. Leave out the tycoon and pond systems. |
+| Little Fish, The Sandbox Game | In our 2D single-player game, you control the fish from inside it. It swims around the map, eats NPC fish, and grows with each catch. | In Decentraland, your avatar rides on top of the fish. You can compete with other riders and park safely at the dock. |
 | Fishing Game, Decentraland | In our reference view, the shore and dock show where the player starts, and the guide uses a parchment panel. | Use the dock to board a moving fish and the book to track what you eat. |
 
 ## 9. Four Week Plan
 
-**Application sample** The local build shows the ride, eat, grow, escape, and dock loop. Public test deployment and the README link are pending. V0 scope is subject to agreement with Creator Success. The following is the proposed v1 plan after V0.
+**Application sample** The public test scene shows the ride, eat, grow, escape, and dock loop. V0 scope is subject to agreement with Creator Success. The following is the proposed V1 plan after V0. [Play Ride A Fish](https://decentraland.org/jump?realm=entenium.dcl.eth)
 
 | Week | What we will build or check |
 |---|---|
 | 1 | Watch first-time players find the dock and board. Aim for 80% to take a useful action within five seconds and explain the immediate goal within ten. Test touch boarding early. |
 | 2 | Run a group test with four players. Check contested catches, shark contact, voluntary retries, full slots, docking, and rejoining. |
 | 3 | Tune starter food, protection, and chase balance. If the core loop is stable, test the shared countdown and timed rare fish. |
-| 4 | Test mobile controls and frame rate, verify saved discoveries, and prepare the World release and README. Track first-week return once live. |
+| 4 | Test mobile controls and frame rate, verify saved discoveries, and prepare the V1 update. Track first-week returns after release. |
 
-**What keeps changing after launch**
+**Planned content after launch**
 
-- The fish pool changes each hunt, and shared timers give players a time to meet.
-- Later, add time-specific fish, such as an Angel Fish at 13:00 UTC, and monthly or holiday fish events.
-- The seven-day wearable track follows after the core loop and scheduled hunts are tested.
-- If players leave after being eaten, fix the restart and chase balance before adding species.
-
-**Out of v1 scope** Extra arenas, tycoon and pond systems, and wearable rewards. The first addition after a stable release is the daily wearable track.
+- **Fish collection.** Add species to the Index, with timed and seasonal fish that give players a reason to return.
+- **Fish skin shop.** Let players spend earned coins on skins for their rides.
 
 **Top risk and fallback** If first-time players get stuck at the dock, shorten the guidance and test one clear Ride action before expanding the tutorial. If touch seating is unreliable, prioritize a reliable board-and-dock transition before adding optional motion effects.
 
-**Open submission items** Confirm rights for reused assets and screen the public title. Record the required Featured-game visits and lessons in the application. Publish the test scene, add its URL to the README, and confirm reviewer access to the repository. [Creator Success onboarding](https://docs.decentraland.org/creator/studio-onboarding)
+**Open submission items** Confirm rights for reused assets and screen the public title. Record the required Featured-game visits and lessons in the application, and confirm reviewer access to the repository. [Creator Success onboarding](https://docs.decentraland.org/creator/studio-onboarding)
