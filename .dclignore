@@ -54,3 +54,10 @@ assets/asset-packs/broadleaf_plant/
 assets/asset-packs/fern_plant/
 assets/asset-packs/garden_gazebo/
 assets/asset-packs/slender_palm_tree/
+
+# Superseded power-up visuals kept for editing.
+assets/Models/shield-powerup.glb
+assets/Models/speed-powerup.glb
+assets/Images/shield-model-icon.png
+assets/Images/speed-model-icon.png
+assets/Images/KOFTE/Fish_05-shield.jpg

@@ -11,11 +11,11 @@ export const INDEX_SILHOUETTES = 'assets/Images/ui/book/fish-silhouettes-uniform
 export const GUIDE_FRAME = 'assets/Images/ui/rean/dialogue-angular.png'
 export const GUIDE_NAMEPLATE = 'assets/Images/ui/rean/nameplate-angular.png'
 export const GUIDE_BUTTON = 'assets/Images/ui/rean/button-angular.png'
-export const SHIELD_TEXTURE = 'assets/Images/KOFTE/Fish_05-shield.jpg'
+export const BOOST_TEXTURE = 'assets/Images/KOFTE/Fish_05-boost.jpg'
 
 const textures = [
   COIN_TEXTURE, INDEX_ICON, INDEX_BOOK, INDEX_TILE, INDEX_SILHOUETTES,
-  GUIDE_FRAME, GUIDE_NAMEPLATE, GUIDE_BUTTON, SHIELD_TEXTURE, ...POWERUP_ICONS,
+  GUIDE_FRAME, GUIDE_NAMEPLATE, GUIDE_BUTTON, BOOST_TEXTURE, ...POWERUP_ICONS,
   'assets/Images/ui/book/stat-hook.png', 'assets/Images/ui/book/stat-ruler.png',
   ...['07', '17', '06', '20'].map(id => 'assets/Images/ui/book/fish-' + id + '-uniform.png')
 ]

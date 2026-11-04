@@ -54,8 +54,10 @@ export class PowerupClient {
       if (this.views.has(powerup.id)) continue
       const entity = this.pool[powerup.kind].pop() ?? this.create(powerup.kind)
       const transform = Transform.getMutable(entity)
-      transform.position = Vector3.create(powerup.x, SEA_Y + 0.03, powerup.z)
-      transform.rotation = Quaternion.fromEulerDegrees(65 + powerup.id % 16, powerup.id * 137.507 % 360, 15 + powerup.id % 12)
+      const gum = powerup.kind === SHIELD_POWERUP
+      const yaw = powerup.id * 137.507 % 360
+      transform.position = Vector3.create(powerup.x, SEA_Y + (gum ? 0.22 : 0.12), powerup.z)
+      transform.rotation = Quaternion.fromEulerDegrees(gum ? 40 : 58, yaw, gum ? 0 : 15)
       VisibilityComponent.createOrReplace(entity, { visible: !this.pending.has(powerup.id) })
       this.views.set(powerup.id, { entity, state: powerup })
     }
@@ -143,7 +145,8 @@ export class PowerupClient {
 
   private create(kind: number): Entity {
     const entity = engine.addEntity()
-    Transform.create(entity)
+    const scale = kind === SHIELD_POWERUP ? 0.84 : 1.2
+    Transform.create(entity, { scale: Vector3.create(scale, scale, scale) })
     GltfContainer.create(entity, { src: POWERUP_MODELS[kind], visibleMeshesCollisionMask: 0, invisibleMeshesCollisionMask: 0 })
     return entity
   }

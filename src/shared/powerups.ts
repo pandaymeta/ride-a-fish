@@ -7,8 +7,8 @@ export const BOOST_DURATION = 20
 export const BOOST_MAX_MULTIPLIER = 50 / 30
 export const POWERUP_RESPAWN_SECONDS = 10
 export const POWERUP_COUNT_PER_KIND = 2
-export const POWERUP_MODELS = ['assets/Models/shield-powerup.glb', 'assets/Models/speed-powerup.glb']
-export const POWERUP_ICONS = ['assets/Images/shield-model-icon.png', 'assets/Images/speed-model-icon.png']
+export const POWERUP_MODELS = ['assets/Models/gum-shield.glb', 'assets/Models/chili-speedbooster.glb']
+export const POWERUP_ICONS = ['assets/Images/gum-shield-icon.png', 'assets/Images/chili-speedbooster-icon.png']
 
 export interface PowerupState { id: number; kind: number; x: number; z: number }
 export interface PowerupGrant {

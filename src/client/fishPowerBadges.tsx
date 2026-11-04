@@ -1,7 +1,8 @@
 import { Billboard, BillboardMode, engine, Entity, Font, Material, MaterialTransparencyMode, MeshRenderer,
-  TextAlignMode, TextShape, Transform, VisibilityComponent } from '@dcl/sdk/ecs'
+  TextAlignMode, TextShape, TextureFilterMode, Transform, VisibilityComponent } from '@dcl/sdk/ecs'
 import { Color3, Color4, Vector3 } from '@dcl/sdk/math'
 import { MAX_RIDERS } from '../shared/config'
+import { POWERUP_ICONS, SHIELD_POWERUP, SPEED_POWERUP } from '../shared/powerups'
 
 interface BadgePart { icon: Entity; number: Entity; value: string; visible: boolean }
 interface Badge {
@@ -82,17 +83,17 @@ export class FishPowerBadges {
     const panel = engine.addEntity()
     Transform.create(panel, { parent: root })
     return { root, panel, active: false, seen: false, size: 0, depth: 0,
-      shield: this.createPart(panel, 'assets/Images/shield-model-icon.png'),
-      speed: this.createPart(panel, 'assets/Images/speed-model-icon.png') }
+      shield: this.createPart(panel, POWERUP_ICONS[SHIELD_POWERUP]),
+      speed: this.createPart(panel, POWERUP_ICONS[SPEED_POWERUP]) }
   }
 
   private createPart(parent: Entity, src: string): BadgePart {
     const icon = engine.addEntity()
     Transform.create(icon, { parent })
     MeshRenderer.setPlane(icon)
-    Material.setPbrMaterial(icon, { texture: Material.Texture.Common({ src }),
-      albedoColor: Color4.White(), castShadows: false, alphaTest: 0.05,
-      transparencyMode: MaterialTransparencyMode.MTM_ALPHA_TEST,
+    Material.setPbrMaterial(icon, { texture: Material.Texture.Common({ src, filterMode: TextureFilterMode.TFM_TRILINEAR }),
+      albedoColor: Color4.White(), castShadows: false,
+      transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
       metallic: 0, roughness: 1, specularIntensity: 0, emissiveIntensity: 0 })
     VisibilityComponent.create(icon, { visible: false })
     const number = engine.addEntity()

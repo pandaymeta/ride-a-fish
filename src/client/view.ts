@@ -318,7 +318,7 @@ export class ArenaView {
       }
       if (view.powerEffects) {
         const shielded = (view.state.powerShield ?? 0) > 0 || (id === myFishId && !!localPower?.shieldPreview)
-        view.powerEffects.update(shielded)
+        view.powerEffects.update(shielded, boosting)
         if (sceneVisible && (id !== myFishId || followPlayer)
           && (VisibilityComponent.getOrNull(view.root)?.visible ?? true)) {
           const shieldSeconds = Math.max(view.state.powerShield ?? 0, id === myFishId && localPower?.shieldPreview ? 30 : 0)
