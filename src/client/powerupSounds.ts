@@ -18,19 +18,22 @@ export class PowerupSounds {
     for (let i = 0; i < 2; i++) {
       const voice = engine.addEntity()
       Transform.create(voice)
-      AudioSource.create(voice, { audioClipUrl: SHIELD, global: true, playing: false, loop: false, volume: 0.65 })
+      AudioSource.create(voice, { audioClipUrl: SHIELD, global: true, playing: false, loop: false, volume: 0.85 })
       this.voices.push(voice)
     }
     this.water = engine.addEntity()
     Transform.create(this.water)
-    AudioSource.create(this.water, { audioClipUrl: WATER, global: true, playing: false, loop: true, volume: 0.1 })
+    AudioSource.create(this.water, { audioClipUrl: WATER, global: true, playing: false, loop: true, volume: 0.85 })
   }
 
   pickup(kind: number): void {
     if (EngineInfo.getOrNull(engine.RootEntity)?.sceneHidden) return
     const voice = this.voices[this.next++ % this.voices.length]
-    AudioSource.getMutable(voice).pitch = 1 + (Math.random() * 2 - 1) * 0.025
-    AudioSource.playSound(voice, kind === 0 ? SHIELD : SPEED)
+    const gum = kind === 0
+    const audio = AudioSource.getMutable(voice)
+    audio.volume = gum ? 0.85 : 0.70
+    audio.pitch = 1 + (Math.random() * 2 - 1) * 0.025
+    AudioSource.playSound(voice, gum ? SHIELD : SPEED)
   }
 
   update(riding: boolean, swimming: boolean): void {

@@ -17,6 +17,7 @@ const textures = [
   COIN_TEXTURE, INDEX_ICON, INDEX_BOOK, INDEX_TILE, INDEX_SILHOUETTES,
   GUIDE_FRAME, GUIDE_NAMEPLATE, GUIDE_BUTTON, BOOST_TEXTURE, ...POWERUP_ICONS,
   'assets/Images/ui/book/stat-hook.png', 'assets/Images/ui/book/stat-ruler.png',
+  'assets/Images/ui/book/stat-coin.png', 'assets/Images/ui/book/stat-clock.png',
   ...['07', '17', '06', '20'].map(id => 'assets/Images/ui/book/fish-' + id + '-uniform.png')
 ]
 const loaded = new Set<string>()

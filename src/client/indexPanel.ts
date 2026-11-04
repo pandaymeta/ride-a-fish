@@ -48,11 +48,10 @@ const LAYOUT = {
   "statY0": 605,
   "statY1": 670,
   "statY2": 734,
-  "noteX": 196,
-  "noteY": 807,
-  "noteW": 553,
-  "noteH": 43,
-  "noteFont": 23,
+  "statY3": 797,
+  "statDividerY": 852,
+  "statDividerX": 196,
+  "statDividerW": 553,
   "tileW": 114,
   "tileImageSize": 108,
   "tileImageLeft": 0,
@@ -80,8 +79,10 @@ const LAYOUT = {
   "tileRadius": 16
 }
 const ENTRIES = [
-  { species: 0, image: '07' }, { species: 1, image: '17' },
-  { species: 2, image: '06' }, { species: 4, image: '20' }
+  { species: 0, image: '07', bestTime: '9:00 AM UTC' },
+  { species: 1, image: '17', bestTime: '1:00 PM UTC' },
+  { species: 2, image: '06', bestTime: '5:00 PM UTC' },
+  { species: 4, image: '20', bestTime: '9:00 PM UTC' }
 ]
 const FUTURE_RARITIES = ['Epic', 'Legendary', 'Mythic', 'Exotic', 'Common', 'Uncommon', 'Rare']
 let profile: PlayerProfile | undefined
@@ -143,7 +144,7 @@ function refresh(): void {
   book.caught = '<b>Caught:  ' + caught.toLocaleString('en-US') + '</b>'
   book.largest = '<b>Largest:  ' + (entry && caught ? (profile?.largest[entry.species] ?? 0).toLocaleString('en-US') : '--') + '</b>'
   book.cashValue = '<b>Coin value:  ' + (fish ? fish.mass.toLocaleString('en-US') : '--') + '</b>'
-  book.note = !fish ? 'Coming soon' : caught > 0 ? '' : fish.hint
+  book.bestTime = '<b>Best Time:  ' + (entry?.bestTime ?? '--') + '</b>'
   const tiles: Record<string, unknown> = {}
   for (let i = 0; i < 25; i++) {
     const tile = sprite(i)

@@ -30,8 +30,8 @@ function shoreDistance({ x, z }: Point): number {
 export class IslandAudio {
   private readonly surf = source(SURF, 0, true)
   private readonly wake = source(WAKE, 0, true)
-  private readonly jump = source(JUMP, 0.33)
-  private readonly land = source(LAND, 0.49)
+  private readonly jump = source(JUMP, 0.69)
+  private readonly land = source(LAND, 0.90)
   private readonly music = source(MUSIC, 0)
   private mixTime = 0
   private musicTime = -4
@@ -74,11 +74,12 @@ export class IslandAudio {
     this.musicTime += elapsed
     if (this.musicTime >= MUSIC_LENGTH) this.musicTime = -MUSIC_PAUSE
     const musicPlaying = this.musicTime >= 0
-    const musicLevel = talking ? 0.06 : fish ? 0.12 : 0.17
-    const surfLevel = 0.27 * Math.max(0, 1 - Math.max(0, shoreDistance(fish ?? player)) / 48)
+    const musicLevel = talking ? 0.09 : fish ? 0.17 : 0.23
+    const shoreProximity = Math.max(0, 1 - Math.max(0, shoreDistance(fish ?? player)) / 48)
+    const surfLevel = 0.14 + 0.34 * shoreProximity
     const wakeLevel = fish && !airborne && !boosted && speed <= SPEED * 2.5
-      ? 0.24 * Math.min(1, Math.max(0, (speed - 0.28) / (SPEED - 0.28))) : 0
-    this.mix(this.surf, SURF, surfLevel * (musicPlaying ? 0.78 : 1), elapsed)
+      ? 0.40 * Math.min(1, Math.max(0, (speed - 0.28) / (SPEED - 0.28))) : 0
+    this.mix(this.surf, SURF, surfLevel * (musicPlaying ? 0.85 : 1), elapsed)
     this.mix(this.wake, WAKE, wakeLevel, elapsed)
 
     if (musicPlaying) this.mix(this.music, MUSIC, musicLevel, elapsed)

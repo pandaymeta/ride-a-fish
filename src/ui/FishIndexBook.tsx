@@ -1,7 +1,7 @@
 /** @jsx ReactEcs.createElement */
 import ReactEcs, { UiEntity, Label } from '@dcl/sdk/react-ecs'
 import { actions } from '../client/state'
-import { COIN_TEXTURE, INDEX_BOOK, textureReady } from '../client/startupTextures'
+import { INDEX_BOOK, textureReady } from '../client/startupTextures'
 import { FishBookTile } from './FishBookTile'
 
 export interface State {
@@ -46,11 +46,10 @@ export interface State {
   statY0: number
   statY1: number
   statY2: number
-  noteX: number
-  noteY: number
-  noteW: number
-  noteH: number
-  noteFont: number
+  statY3: number
+  statDividerY: number
+  statDividerX: number
+  statDividerW: number
   tileW: number
   tileImageSize: number
   tileImageLeft: number
@@ -82,7 +81,7 @@ export interface State {
   caught: string
   largest: string
   cashValue: string
-  note: string
+  bestTime: string
   tile0Image: string
   tile0Outline: { r: number; g: number; b: number; a: number }
   tile1Image: string
@@ -201,11 +200,10 @@ export const state: State = {
   "statY0": 484,
   "statY1": 536,
   "statY2": 587.2,
-  "noteX": 156.8,
-  "noteY": 645.6,
-  "noteW": 442.40000000000003,
-  "noteH": 34.4,
-  "noteFont": 18.400000000000002,
+  "statY3": 637.6,
+  "statDividerY": 681.6,
+  "statDividerX": 156.8,
+  "statDividerW": 442.40000000000003,
   "tileW": 91.2,
   "tileImageSize": 86.4,
   "tileImageLeft": 0,
@@ -237,7 +235,7 @@ export const state: State = {
   "caught": "<b>Caught:  0</b>",
   "largest": "<b>Largest:  --</b>",
   "cashValue": "<b>Coin value:  2</b>",
-  "note": "Collect this fish to discover it.",
+  "bestTime": "<b>Best Time:  --</b>",
   "tile0Image": "assets/Images/ui/book/fish-silhouettes-uniform.png",
   "tile0Outline": {
     "r": 0.4,
@@ -696,9 +694,11 @@ export function FishIndexBook() {
     <Label value={state.caught} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY0 }, pointerFilter: 'none' }} />
     <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY1 }, pointerFilter: 'none' }} uiBackground={{ texture: { src: 'assets/Images/ui/book/stat-ruler.png' }, textureMode: 'stretch' }} />
     <Label value={state.largest} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY1 }, pointerFilter: 'none' }} />
-    <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY2 }, pointerFilter: 'none' }} uiBackground={{ texture: { src: COIN_TEXTURE }, textureMode: 'stretch' }} />
+    <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY2 }, pointerFilter: 'none' }} uiBackground={{ texture: { src: 'assets/Images/ui/book/stat-coin.png' }, textureMode: 'stretch' }} />
     <Label value={state.cashValue} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY2 }, pointerFilter: 'none' }} />
-    <Label value={state.note} font="serif" fontSize={state.noteFont} color={{ r: .47, g: .30, b: .16, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.noteW, height: state.noteH, positionType: 'absolute', position: { left: state.noteX, top: state.noteY }, pointerFilter: 'none' }} />
+    <UiEntity uiTransform={{ width: state.statIconSize, height: state.statH, positionType: 'absolute', position: { left: state.statIconX, top: state.statY3 }, pointerFilter: 'none' }} uiBackground={{ texture: { src: 'assets/Images/ui/book/stat-clock.png' }, textureMode: 'stretch' }} />
+    <Label value={state.bestTime} font="serif" fontSize={state.statFont} color={{ r: 0.27, g: 0.13, b: 0.075, a: 1 }} textAlign="middle-left" textWrap="nowrap" uiTransform={{ width: state.statTextW, height: state.statH, positionType: 'absolute', position: { left: state.statTextX, top: state.statY3 }, pointerFilter: 'none' }} />
+    <UiEntity uiTransform={{ width: state.statDividerW, height: 1, positionType: 'absolute', position: { left: state.statDividerX, top: state.statDividerY }, pointerFilter: 'none' }} uiBackground={{ color: { r: .57, g: .34, b: .17, a: .45 } }} />
     <UiEntity uiTransform={{ width: state.tileW, height: state.rowH0, positionType: 'absolute', position: { left: state.col0, top: state.row0 } }}>
       <FishBookTile slot={0} width={state.tileW} height={state.rowH0} image={state.tile0Image} uvs={state.tile0Uvs} imageSize={state.tileImageSize} imageLeft={state.tileImageLeft} imageTop={state.rowImageTop0} stroke={state.selectedStroke} radius={state.tileRadius} outline={state.tile0Outline} />
     </UiEntity>

@@ -17,7 +17,7 @@ export class PickupSounds {
     for (let i = 0; i < 4; i++) {
       const voice = engine.addEntity()
       Transform.create(voice)
-      AudioSource.create(voice, { audioClipUrl: FOOD, playing: false, loop: false, global: true, volume: 0.65 })
+      AudioSource.create(voice, { audioClipUrl: FOOD, playing: false, loop: false, global: true, volume: 0.95 })
       this.voices.push(voice)
     }
   }
@@ -25,8 +25,11 @@ export class PickupSounds {
   play(kind: number, discovery: boolean): void {
     if (EngineInfo.getOrNull(engine.RootEntity)?.sceneHidden) return
     const voice = this.voices[this.next++ % this.voices.length]
-    AudioSource.getMutable(voice).pitch = discovery ? 1 : 1 + (Math.random() * 2 - 1) * 0.04
-    AudioSource.playSound(voice, kind === 0 ? FOOD : discovery ? DISCOVERY : BITE)
+    const clip = kind === 0 ? FOOD : discovery ? DISCOVERY : BITE
+    const audio = AudioSource.getMutable(voice)
+    audio.volume = clip === DISCOVERY ? 0.74 : 0.95
+    audio.pitch = discovery ? 1 : 1 + (Math.random() * 2 - 1) * 0.04
+    AudioSource.playSound(voice, clip)
   }
 
   update(riding: boolean): void {

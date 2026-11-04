@@ -10,7 +10,7 @@ export class EatenSound {
   constructor() {
     Transform.create(this.voice)
     AssetLoad.create(this.voice, { assets: [BITE] })
-    AudioSource.create(this.voice, { audioClipUrl: BITE, playing: false, loop: false, global: true, volume: 0.75 })
+    AudioSource.create(this.voice, { audioClipUrl: BITE, playing: false, loop: false, global: true, volume: 0.95 })
   }
 
   play(eventId: string): void {
