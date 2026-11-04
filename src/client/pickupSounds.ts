@@ -1,6 +1,6 @@
 import { AssetLoad, AudioSource, EngineInfo, engine, Entity, Transform } from '@dcl/sdk/ecs'
 
-const FOOD = 'assets/Audio/food-collect.ogg'
+const COIN = 'assets/Audio/coin-collect.ogg'
 const BITE = 'assets/Audio/fish-bite.ogg'
 const DISCOVERY = 'assets/Audio/fish-discovery.ogg'
 
@@ -13,11 +13,11 @@ export class PickupSounds {
   constructor() {
     const loader = engine.addEntity()
     Transform.create(loader)
-    AssetLoad.create(loader, { assets: [FOOD, BITE, DISCOVERY] })
+    AssetLoad.create(loader, { assets: [COIN, BITE, DISCOVERY] })
     for (let i = 0; i < 4; i++) {
       const voice = engine.addEntity()
       Transform.create(voice)
-      AudioSource.create(voice, { audioClipUrl: FOOD, playing: false, loop: false, global: true, volume: 0.95 })
+      AudioSource.create(voice, { audioClipUrl: COIN, playing: false, loop: false, global: true })
       this.voices.push(voice)
     }
   }
@@ -25,9 +25,9 @@ export class PickupSounds {
   play(kind: number, discovery: boolean): void {
     if (EngineInfo.getOrNull(engine.RootEntity)?.sceneHidden) return
     const voice = this.voices[this.next++ % this.voices.length]
-    const clip = kind === 0 ? FOOD : discovery ? DISCOVERY : BITE
+    const clip = kind === 0 ? COIN : discovery ? DISCOVERY : BITE
     const audio = AudioSource.getMutable(voice)
-    audio.volume = clip === DISCOVERY ? 0.74 : 0.95
+    audio.volume = clip === COIN ? 0.50 : clip === DISCOVERY ? 0.74 : 0.95
     audio.pitch = discovery ? 1 : 1 + (Math.random() * 2 - 1) * 0.04
     AudioSource.playSound(voice, clip)
   }

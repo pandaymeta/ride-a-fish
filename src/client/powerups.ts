@@ -27,10 +27,6 @@ export class PowerupClient {
   private clock = 0
   private snapshotAge = 0
   private lastTick = 0
-  private lastX = 0
-  private lastZ = 0
-  private lastContactClock = 0
-  private hasPosition = false
   private popupUntil = 0
 
   constructor() {
@@ -110,14 +106,7 @@ export class PowerupClient {
 
   updateContact(mine: FishState | undefined, position: Vector3 | undefined, active: boolean): void {
     const visible = active && !!mine && !!position && !EngineInfo.getOrNull(engine.RootEntity)?.sceneHidden
-    const elapsed = Math.max(0.001, this.clock - this.lastContactClock)
-    const moving = !!(visible && position && this.hasPosition
-      && distanceSquared(position.x, position.z, this.lastX, this.lastZ) >= 0.09 * elapsed * elapsed)
-    this.sounds.update(visible, this.controls.boosting && moving)
-    if (visible && position) {
-      this.lastX = position.x; this.lastZ = position.z; this.hasPosition = true
-    } else this.hasPosition = false
-    this.lastContactClock = this.clock
+    this.sounds.update(visible)
     if (!visible || !mine || !position) return
     const radius = powerupEatRadius(mine.mass)
     for (const [id, view] of this.views) {
@@ -133,9 +122,10 @@ export class PowerupClient {
   }
 
   private feedback(kind: number): void {
-    this.sounds.pickup(kind)
-    hud.popup = kind === SHIELD_POWERUP ? 'Shield' : 'Speedboost'
-    hud.popupColor = kind === SHIELD_POWERUP ? { r: 0, g: 0.67, b: 1, a: 1 } : { r: 1, g: 0.84, b: 0.27, a: 1 }
+    const shield = kind === SHIELD_POWERUP
+    this.sounds.pickup(shield)
+    hud.popup = shield ? 'Shield' : 'Speedboost'
+    hud.popupColor = shield ? { r: 0, g: 0.67, b: 1, a: 1 } : { r: 1, g: 0.84, b: 0.27, a: 1 }
     this.popupUntil = this.clock + 1.5
   }
 

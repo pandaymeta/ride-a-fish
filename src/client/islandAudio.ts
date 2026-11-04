@@ -1,5 +1,6 @@
 import { AssetLoad, AudioSource, EngineInfo, engine, Entity, Transform } from '@dcl/sdk/ecs'
-import { SPEED } from '../shared/config'
+import { clamp, SPEED } from '../shared/config'
+import { BOOST_MAX_MULTIPLIER } from '../shared/powerups'
 import { islandRadius } from '../shared/islandProfile'
 import { LOBBY_ISLAND } from '../shared/lobbyIsland'
 
@@ -77,8 +78,9 @@ export class IslandAudio {
     const musicLevel = talking ? 0.09 : fish ? 0.17 : 0.23
     const shoreProximity = Math.max(0, 1 - Math.max(0, shoreDistance(fish ?? player)) / 48)
     const surfLevel = 0.14 + 0.34 * shoreProximity
-    const wakeLevel = fish && !airborne && !boosted && speed <= SPEED * 2.5
-      ? 0.40 * Math.min(1, Math.max(0, (speed - 0.28) / (SPEED - 0.28))) : 0
+    const swim = clamp((speed - 0.28) / (SPEED - 0.28), 0, 1)
+    const rush = boosted ? clamp((speed - SPEED) / (SPEED * (BOOST_MAX_MULTIPLIER - 1)), 0, 1) : 0
+    const wakeLevel = fish && !airborne && speed <= SPEED * 2.5 ? 0.40 * swim + 0.50 * rush : 0
     this.mix(this.surf, SURF, surfLevel * (musicPlaying ? 0.85 : 1), elapsed)
     this.mix(this.wake, WAKE, wakeLevel, elapsed)
 
