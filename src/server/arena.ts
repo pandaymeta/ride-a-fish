@@ -114,7 +114,7 @@ export class Arena {
 
   observe(owner: string, position: { x: number; y: number; z: number }): void {
     const f = this.getMount(owner)
-    // The server reads the engine's player transform, never a client-supplied position message.
+    // The server supplies the observed position and controls fish state.
     // A waiting fish stays reserved until its rider finishes the boarding animation.
     if (!f || f.boardState !== 2 || (!f.tracking && insideLobbyIsland(position.x, position.z)) || position.y > ARENA_MAX_PLAYER_Y || !Number.isFinite(position.x) || !Number.isFinite(position.z)) return
     if (position.x < SEA.minX || position.x > SEA.maxX || position.z < SEA.minZ || position.z > SEA.maxZ || !insideLagoon(position.x, position.z) || position.y < -3) {

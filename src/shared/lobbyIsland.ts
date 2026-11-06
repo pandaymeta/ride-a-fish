@@ -1,7 +1,7 @@
 import { segmentCrossesSand } from './sandCollision'
 import { islandRadius } from './islandProfile'
 // Shared island footprint: scene placement is read once by loadSceneLayout.
-export const LOBBY_ISLAND = { x: 96, z: 96, radiusX: 20, radiusZ: 17.5, centerY: 7.25, halfHeight: 2.28, irregular: false, shoreRadiusX: 20, shoreRadiusZ: 17.5 }
+export const LOBBY_ISLAND = { x: 96, z: 96, radiusX: 20, radiusZ: 17.5, centerY: 7.25, halfHeight: 2.28, irregular: false, shoreHeight: 0, shoreRadiusX: 20, shoreRadiusZ: 17.5 }
 export function insideLobbyIsland(x: number, z: number, margin = 0): boolean {
   const i = LOBBY_ISLAND
   const dx = (x - i.x) / i.shoreRadiusX, dz = (z - i.z) / i.shoreRadiusZ
@@ -14,8 +14,8 @@ export function lobbySurfaceY(x: number, z: number): number {
   if (!i.irregular) return i.centerY + i.halfHeight * Math.sqrt(Math.max(0, 1 - r2))
   const angle = Math.atan2((z - i.z) / i.radiusZ, (x - i.x) / i.radiusX)
   const r = Math.sqrt(r2) / islandRadius(angle)
-  const height = r <= 0.48 ? 0.5 : 0.5 - 0.37 * Math.min(1, (r - 0.48) / 0.52) ** 1.7
-  return i.centerY + i.halfHeight * 2 * height
+  const slope = Math.min(1, Math.max(0, (r - 0.48) / 0.52)) ** 1.7
+  return i.centerY + i.halfHeight + (i.shoreHeight - i.halfHeight) * slope
 }
 export function constrainOutsideLobbyIsland(point: { x: number; z: number }, margin = 3): void {
   if (!insideLobbyIsland(point.x, point.z, margin)) return

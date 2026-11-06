@@ -6,7 +6,7 @@ import { nearestDockLanding } from '../shared/dockSurfaces'
 import { routeAroundLobbyIsland } from '../shared/lobbyIsland'
 import { segmentCrossesSand } from '../shared/sandCollision'
 import type { ArenaSnapshot, FishState, PlayerProfile } from '../shared/messages'
-import { TUTORIAL_COMPLETE } from '../shared/tutorial'
+import { TUTORIAL_COMPLETE, tutorialDialogue } from '../shared/tutorial'
 import { chooseTutorialTarget, TutorialPoint, TutorialTarget } from '../shared/tutorialTargets'
 import { TutorialTrail } from './tutorialTrail'
 
@@ -44,8 +44,9 @@ export class TutorialGuidance {
       Transform.getMutable(this.arrow).position = Vector3.create(g.position.x, g.position.y + 1.35, g.position.z)
       this.markerTimer = 0
     }
-    const show = !!profile && !hidden && ((profile.tutorialSteps === 0 && !(profile.tutorialDialogues & 1))
-      || (profile.tutorialSteps === TUTORIAL_COMPLETE && !(profile.tutorialDialogues & 2)))
+    const show = !!g && !!profile && !hidden && tutorialDialogue({
+      version: 1, steps: profile.tutorialSteps, dialogues: profile.tutorialDialogues
+    }) !== undefined
     if (show !== this.visible) { VisibilityComponent.getMutable(this.arrow).visible = show; this.visible = show }
     if (!profile || !mine || !position || !riding || hidden || profile.tutorialSteps === TUTORIAL_COMPLETE) {
       this.trail.hide(); this.target = undefined; this.path = []; return

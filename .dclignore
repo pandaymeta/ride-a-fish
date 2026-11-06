@@ -61,3 +61,6 @@ assets/Models/speed-powerup.glb
 assets/Images/shield-model-icon.png
 assets/Images/speed-model-icon.png
 assets/Images/KOFTE/Fish_05-shield.jpg
+
+# Local asset setup manifest
+design/local-assets.txt

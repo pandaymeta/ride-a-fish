@@ -18,15 +18,15 @@ const colliders: SandCollider[] = []
 
 export function clearSandCollisions(): void { colliders.length = 0 }
 
-export function addSandCollision(position: { x: number; y: number; z: number }, scale: { x: number; y: number; z: number }, rotation: { x: number; y: number; z: number; w: number }, waterY: number): void {
+export function addSandCollision(position: { x: number; y: number; z: number }, scale: { x: number; y: number; z: number }, rotation: { x: number; y: number; z: number; w: number }, waterY: number, waterline?: typeof ISLAND_OUTLINE): void {
   // Block the exposed sand plus 20 cm of shallow shore, rather than the deep skirt.
   // Cache this once; airborne fish still use the same dry-land blocker.
-  const factor = Math.abs(rotation.x) + Math.abs(rotation.z) < 0.001
-    ? shorelineFactor((waterY - 0.2 - position.y) / scale.y) : 1
+  const useLegacyProfile = !waterline && Math.abs(rotation.x) + Math.abs(rotation.z) < 0.001
+  const factor = useLegacyProfile ? shorelineFactor((waterY - 0.2 - position.y) / scale.y) : 1
   const q = rotation
   const xx = 1 - 2 * (q.y * q.y + q.z * q.z), xz = 2 * (q.x * q.z + q.y * q.w)
   const zx = 2 * (q.x * q.z - q.y * q.w), zz = 1 - 2 * (q.x * q.x + q.y * q.y)
-  const points = ISLAND_OUTLINE.map(([x, z]) => ({ x: position.x + xx * x * scale.x * factor + xz * z * scale.z * factor,
+  const points = (waterline ?? ISLAND_OUTLINE).map(([x, z]) => ({ x: position.x + xx * x * scale.x * factor + xz * z * scale.z * factor,
     z: position.z + zx * x * scale.x * factor + zz * z * scale.z * factor }))
   colliders.push({ points, minX: Math.min(...points.map(p => p.x)), maxX: Math.max(...points.map(p => p.x)),
     minZ: Math.min(...points.map(p => p.z)), maxZ: Math.max(...points.map(p => p.z)) })

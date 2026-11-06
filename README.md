@@ -12,6 +12,22 @@ Press **E** near the NPC Guide for the tutorial, or beside your fish to board. U
 
 To preview locally, open the project in Decentraland Creator Hub and choose **Play → Desktop Client**.
 
+## Local island assets
+
+The island uses licensed [Toon Adventure Island](https://assetstore.unity.com/packages/3d/environments/landscapes/toon-adventure-island-281045) models and textures. Copy the files listed in [the local asset manifest](design/local-assets.txt) from your licensed Ride A Fish Creator Hub project before previewing or deploying. The scene uses its Decentraland exports with their existing collider meshes and shared textures.
+
+On Windows, run this from the repo root and enter the path to your Creator Hub scene folder.
+
+```powershell
+$scene = Read-Host "Creator Hub scene folder"
+foreach ($file in Get-Content -LiteralPath "design/local-assets.txt") {
+    $source = Join-Path $scene $file
+    if (!(Test-Path -LiteralPath $source -PathType Leaf)) { throw "Missing local asset $file" }
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $file) | Out-Null
+    Copy-Item -LiteralPath $source -Destination $file
+}
+```
+
 ## Build
 
 Use Node.js 18 or newer.

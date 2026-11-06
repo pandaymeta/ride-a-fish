@@ -11,7 +11,7 @@ const CLEAR_WHITE = { ...WHITE, a: 0 }
 const UP = Quaternion.fromEulerDegrees(-90, 0, 0)
 const BACK_AND_UP = Quaternion.fromEulerDegrees(-65, 180, 0)
 
-// The reference's swimming and boat-wake presets share these two sprite assets.
+// Swimming and boat wakes share these two sprite assets.
 // Two reusable emitters per swimmer keep four players + the shark at ten systems.
 export class FishWaterEffects {
   private rings: Entity
@@ -49,7 +49,7 @@ export class FishWaterEffects {
       billboard: true, initialVelocitySpeed: { start: 1, end: 0 },
       initialSize: { start: 1, end: 1 }, sizeOverTime: { start: 0.5, end: 1.5 },
       colorOverTime: { start: WHITE, end: { ...WHITE, a: 34 / 255 } },
-      texture: { src: SPRAY }, spriteSheet: { tilesX: 3, tilesY: 2, framesPerSecond: 24 },
+      texture: { src: SPRAY }, spriteSheet: { tilesX: 4, tilesY: 2, framesPerSecond: 24 },
       blendMode: PBParticleSystem_BlendMode.PSB_ADD,
       simulationSpace: PBParticleSystem_SimulationSpace.PSS_WORLD,
       shape: ParticleSystem.Shape.Cone({ angle: 60, radius: 0.4 }), loop: true, prewarm: false

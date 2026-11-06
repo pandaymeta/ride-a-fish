@@ -69,7 +69,8 @@ export function preloadStartupTextures(): void {
 
   function check() {
     const elapsed = Date.now() - startedAt
-    if (elapsed >= 5_000) waiting = false
+    // Keep optional book and effect art warming without holding up the HUD.
+    if (elapsed >= 5_000 || (loaded.has(COIN_TEXTURE) && loaded.has(INDEX_ICON))) waiting = false
     if (elapsed >= 20_000) { finish(); return }
     if (pending.size) return
     if (!retry.size) { finish(); return }

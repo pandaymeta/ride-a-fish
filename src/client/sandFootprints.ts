@@ -104,7 +104,8 @@ export class SandFootprints {
       Transform.create(entity)
       MeshRenderer.setPlane(entity)
       Material.setPbrMaterial(entity, {
-        texture: Material.Texture.Common({ src: TEXTURE, wrapMode: TextureWrapMode.TWM_CLAMP }),
+        texture: Material.Texture.Common({ src: TEXTURE, wrapMode: TextureWrapMode.TWM_CLAMP,
+          tiling: { x: -side, y: 1 }, offset: { x: side > 0 ? 1 : 0, y: 0 } }),
         albedoColor: { r: 0.38, g: 0.25, b: 0.12, a: 0.62 },
         transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
         metallic: 0, roughness: 1, specularIntensity: 0, castShadows: false
@@ -122,7 +123,7 @@ export class SandFootprints {
     const transform = Transform.getMutable(mark.entity)
     transform.position = Vector3.add(position, Vector3.scale(n, 0.012))
     transform.rotation = Quaternion.lookRotation(Vector3.scale(n, -1), toeDirection)
-    transform.scale = Vector3.create(0.22 * -side, 0.4, 1)
+    transform.scale = Vector3.create(0.22, 0.4, 1)
     VisibilityComponent.getMutable(mark.entity).visible = true
     mark.remaining = LIFETIME
     this.setOpacity(mark, 0.62)

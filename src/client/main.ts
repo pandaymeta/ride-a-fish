@@ -4,11 +4,11 @@ import { TutorialClient } from './tutorial'
 import { BOARDING_SPOTS } from '../shared/boarding'
 import { DockDisembark } from './dockDisembark'
 import { DockBoarding } from './dockBoarding'
-import { insideLobbyIsland } from '../shared/lobbyIsland'
 import { engine, Transform } from '@dcl/sdk/ecs'
+import { Vector3 } from '@dcl/sdk/math'
 import { getPlayer } from '@dcl/sdk/src/players'
 import { isStateSyncronized } from '@dcl/sdk/network'
-import { COLLECTIBLE_SPECIES, collectedSpeciesCount, onPlatform, SEA_Y, SPECIES, STAGE } from '../shared/config'
+import { COLLECTIBLE_SPECIES, collectedSpeciesCount, SEA_Y, SPECIES } from '../shared/config'
 import { ArenaSnapshot, PlayerProfile, room } from '../shared/messages'
 import { setupUi } from '../ui'
 import { actions } from './state'
@@ -20,13 +20,10 @@ import { PowerupClient } from './powerups'
 import { EatenSound } from './eatenSound'
 import { IslandAudio } from './islandAudio'
 import { setupIndex, updateIndexProfile } from './indexPanel'
-import { startOceanFoam } from './oceanFoam'
 import { SandFootprints } from './sandFootprints'
 import { StoolSeating } from './stoolSeating'
-import { waitingForTextures } from './startupTextures'
 
-export function startClient(): void {
-  startOceanFoam()
+export function startClient(localPreview = false): void {
   setupIndex()
   setupUi()
   const pickups = new PickupEffects()
@@ -44,7 +41,9 @@ export function startClient(): void {
   let dockPending = false, dockRequestedAt = 0, dockAckClock = 0
   let dockedFish: number | undefined
   let sceneReady = false
-  let recoveryArmed = false, lastRecovery = 0, strandedClock = 0, sharkContactClock = 0
+  let previewPositionClock = 0
+  let lastPreviewPosition: Vector3 | undefined
+  let lastRecovery = 0, strandedClock = 0, sharkContactClock = 0
   const tutorial = new TutorialClient()
   const movementHints = new MovementHints()
   const stools = new StoolSeating(() => form.phase === 'lobby' && !entering && !tutorial.busy)
@@ -166,6 +165,15 @@ export function startClient(): void {
     const mine = snapshot.fish.find(f => f.owner === address)
     const playerPosition = Transform.get(engine.PlayerEntity).position
     helloClock += dt; inputClock += dt; enterClock += dt
+    if (localPreview && isStateSyncronized()) {
+      previewPositionClock += dt
+      const moved = !lastPreviewPosition || Vector3.distanceSquared(lastPreviewPosition, playerPosition) > 0.0016
+      if (previewPositionClock >= (moved ? 0.08 : 0.5)) {
+        previewPositionClock = 0
+        lastPreviewPosition = { ...playerPosition }
+        void room.send('localPreviewPosition', lastPreviewPosition)
+      }
+    }
     if (isStateSyncronized() && helloClock >= (profile ? 5 : 1)) {
       helloClock = 0; void room.send('hello', {})
     }
@@ -191,15 +199,13 @@ export function startClient(): void {
     if (form.phase === 'transforming' && form.readyToRide && mine?.boardState === 1 && seatAckClock >= 0.5) {
       seatAckClock = 0; void room.send('seated', { fishId: mine.id })
     }
-    if (form.phase === 'lobby' && onPlatform(playerPosition)) recoveryArmed = true
-    // Normal fish troughs stay above this. A rider below it has lost support,
-    // including after a reload where the previous island-visit flag is gone.
-    const deepWater = (form.phase === 'lobby' || form.phase === 'fish') && playerPosition.y < SEA_Y - 0.75
-    const fellFromIsland = form.phase === 'lobby' && recoveryArmed
-      && !insideLobbyIsland(playerPosition.x, playerPosition.z) && playerPosition.y < STAGE.top - 1.5
-    strandedClock = form.phase !== 'returning' && (deepWater || fellFromIsland) ? strandedClock + dt : 0
+    // The avatar's feet cross the sea level regardless of the shape of the sand or rocks.
+    const inWaterOnFoot = form.phase === 'lobby' && playerPosition.y < SEA_Y
+    // A mounted player only needs recovery if they sink below normal riding height.
+    const riderLostSupport = form.phase === 'fish' && playerPosition.y < SEA_Y - 0.75
+    strandedClock = inWaterOnFoot || riderLostSupport ? strandedClock + dt : 0
     if (strandedClock >= 0.45 && Date.now() - lastRecovery > 3000) {
-      strandedClock = 0; lastRecovery = Date.now(); recoveryArmed = false
+      strandedClock = 0; lastRecovery = Date.now()
       console.log('[CLIENT] Recovering stranded rider:', JSON.stringify({ phase: form.phase, position: playerPosition }))
       notice('Returning you to the island…')
       actions.returnToLobby()
@@ -207,7 +213,7 @@ export function startClient(): void {
     if (pendingReturn !== undefined && alive && inputClock >= 1) {
       inputClock = 0; void room.send('leave', { fishId: pendingReturn })
     }
-    const canInteract = alive && !!profile && !waitingForTextures()
+    const canInteract = alive && !!profile
     tutorial.update(dt, canInteract && form.phase === 'lobby' && !entering && !dockPending && !stools.busy, state.indexDisplay === 'flex')
     powerups.updateControl(dt, mine, riding, alive, state.indexDisplay === 'flex')
     view.update(dt, mine?.mass ?? 1, mine?.id, riding, riding && alive && !dockPending, powerups.controls)

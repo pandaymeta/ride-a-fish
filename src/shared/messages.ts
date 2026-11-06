@@ -50,7 +50,8 @@ export const room = registerMessages({
     best: Schemas.Int, peak: Schemas.Int, guest: Schemas.Boolean,
     saved: Schemas.Boolean, result: Schemas.String
   }),
-  notice: Schemas.Map({ message: Schemas.String })
+  notice: Schemas.Map({ message: Schemas.String }),
+  localPreviewPosition: Schemas.Map({ x: Schemas.Float, y: Schemas.Float, z: Schemas.Float })
 })
 
 export interface FishState {

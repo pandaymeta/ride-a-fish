@@ -12,12 +12,15 @@ import { withinBoardingRange } from '../shared/boarding'
 import { BoardingQueue } from './boardingQueue'
 import { ProgressStore } from './progress'
 
-export function startServer(): void {
+export function startServer(localPreview = false): void {
   const arena = new Arena(readNpcAnchors())
   const store = new ProgressStore()
   const boarding = new BoardingQueue(arena)
-  const identities = new Map<string, { guest: boolean; x: number; y: number; z: number }>()
+  const identities = new Map<string, { guest: boolean; position?: { x: number; y: number; z: number } }>()
   const lastEnter = new Map<string, number>()
+  const joining = new Set<string>()
+  let reportedPreviewPosition = false
+  const previewPositions = new Map<string, { position: { x: number; y: number; z: number }; at: number }>()
   const missingSince = new Map<string, number>()
   let accumulated = 0, snapshotClock = 0, profileClock = 0, saveClock = 0, boardingClock = 0
 
@@ -25,9 +28,10 @@ export function startServer(): void {
     identities.clear()
     for (const [entity, identity] of engine.getEntitiesWith(PlayerIdentityData)) {
       const t = Transform.getOrNull(entity)
-      if (t) identities.set(identity.address.toLowerCase(), {
-        guest: identity.isGuest, x: t.position.x, y: t.position.y, z: t.position.z
-      })
+      const address = identity.address.toLowerCase()
+      const preview = previewPositions.get(address)
+      const position = t?.position ?? (preview && arena.time - preview.at < 1.5 ? preview.position : undefined)
+      identities.set(address, { guest: identity.isGuest, position })
     }
   }
   function notice(address: string, message: string): void {
@@ -47,20 +51,46 @@ export function startServer(): void {
   registerGuide(store, address => {
     refreshIdentities()
     const fish = arena.getMount(address)
-    return fish && fish.boardState !== 0 ? undefined : identities.get(address)
+    return fish && fish.boardState !== 0 ? undefined : identities.get(address)?.position
   }, sendProfile)
 
-  room.onMessage('hello', async (_, context) => {
+  async function admitPlayer(address: string, guest: boolean): Promise<void> {
+    if (joining.has(address)) return
+    joining.add(address)
+    try {
+      if (!await store.load(address, guest)) {
+        notice(address, 'Your collection could not be loaded. Please wait; we will retry safely.')
+        return
+      }
+      if (!identities.has(address)) return
+      sendProfile(address)
+      boarding.join(address)
+      boarding.update(identities)
+      boarding.status(address)
+    } finally {
+      joining.delete(address)
+    }
+  }
+
+  // The localhost headless preview can see a player identity before it receives an avatar Transform.
+  // This handler is never registered on published scenes, where proximity uses engine positions.
+  if (localPreview) room.onMessage('localPreviewPosition', (position, context) => {
+    const address = context?.from.toLowerCase()
+    if (!address || !identities.has(address)
+      || ![position.x, position.y, position.z].every(value => Number.isFinite(value) && Math.abs(value) < 4096)) return
+    if (!identities.get(address)?.position && !reportedPreviewPosition) {
+      reportedPreviewPosition = true
+      console.log('[SERVER] Local preview position fallback active.')
+    }
+    previewPositions.set(address, { position, at: arena.time })
+  })
+
+  room.onMessage('hello', (_, context) => {
     if (!context) return
     const address = context.from.toLowerCase()
     refreshIdentities()
     const identity = identities.get(address)
-    if (!identity) return
-    if (await store.load(address, identity.guest)) {
-      sendProfile(address)
-      boarding.join(address); boarding.update(identities); boarding.status(address)
-    }
-    else notice(address, 'Your collection could not be loaded. Please wait; we will retry safely.')
+    if (identity) void admitPlayer(address, identity.guest)
   })
   room.onMessage('board', (data, context) => {
     if (!context) return
@@ -68,7 +98,7 @@ export function startServer(): void {
     if (arena.time - (lastEnter.get(address) ?? -10) < 0.5) return
     lastEnter.set(address, arena.time)
     refreshIdentities()
-    const player = identities.get(address), fish = arena.getMount(address)
+    const player = identities.get(address)?.position, fish = arena.getMount(address)
     if (!player || !fish || fish.id !== data.fishId || fish.boardState !== 0) return
     if (!withinBoardingRange(player, fish, 0.5)) {
       notice(address, 'Walk onto the dock beside your Clownfish, then press E.'); return
@@ -81,7 +111,7 @@ export function startServer(): void {
     const fish = arena.getMount(address)
     if (!fish || fish.id !== data.fishId || fish.boardState !== 1) return
     refreshIdentities()
-    const player = identities.get(address)
+    const player = identities.get(address)?.position
     if (!player || Math.hypot(player.x - fish.x, player.z - fish.z) > 1.1
       || Math.abs(player.y - fishSeatY(fish)) > 0.7) return
     if (arena.finishBoarding(address, fish.id, store.needsFirstCatch(address))) {
@@ -104,7 +134,7 @@ export function startServer(): void {
     if (fish.boardState === 3) { sendDockReady(address); return }
     if (fish.boardState !== 2) return
     refreshIdentities()
-    const player = identities.get(address)
+    const player = identities.get(address)?.position
     if (!player) return
     const landing = nearestDockLanding(player, 5)
     if (!landing || player.y < SEA_Y - 0.75 || player.y > SEA_Y + 4) {
@@ -119,7 +149,7 @@ export function startServer(): void {
     const address = context.from.toLowerCase(), fish = arena.getMount(address)
     if (!fish || fish.id !== data.fishId || fish.boardState !== 3 || !fish.dockLanding) return
     refreshIdentities()
-    const p = identities.get(address), landing = fish.dockLanding
+    const p = identities.get(address)?.position, landing = fish.dockLanding
     if (!p || Math.hypot(p.x - landing.x, p.z - landing.z) > 1.25 || Math.abs(p.y - landing.y) > 0.8) return
     if (arena.finishDocking(address)) {
       lesson(address, TUTORIAL_DOCK)
@@ -143,7 +173,7 @@ export function startServer(): void {
 
   engine.addSystem(dt => {
     refreshIdentities()
-    for (const [address, player] of identities) arena.observe(address, player)
+    for (const [address, player] of identities) if (player.position) arena.observe(address, player.position)
     accumulated = Math.min(accumulated + dt, 0.25)
     while (accumulated >= 0.05) { arena.step(0.05); accumulated -= 0.05 }
     for (const event of arena.events.splice(0)) {
@@ -182,6 +212,12 @@ export function startServer(): void {
     if (profileClock >= 1) {
       profileClock = 0
       refreshIdentities()
+      // Player identity is enough to load the profile and reserve a berth.
+      // Movement and proximity still use the engine's player transform.
+      for (const [address, player] of identities) {
+        if (!store.players.has(address) || missingSince.has(address)) void admitPlayer(address, player.guest)
+      }
+      for (const address of previewPositions.keys()) if (!identities.has(address)) previewPositions.delete(address)
       for (const address of store.players.keys()) {
         if (identities.has(address)) { missingSince.delete(address); sendProfile(address); boarding.status(address); sendDockReady(address) }
         else {
