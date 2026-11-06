@@ -14,7 +14,7 @@ To preview locally, open the project in Decentraland Creator Hub and choose **Pl
 
 ## Local island assets
 
-The island uses licensed [Toon Adventure Island](https://assetstore.unity.com/packages/3d/environments/landscapes/toon-adventure-island-281045) models and textures. Copy the files listed in [the local asset manifest](design/local-assets.txt) from your licensed Ride A Fish Creator Hub project before previewing or deploying. The scene uses its Decentraland exports with their existing collider meshes and shared textures.
+The island’s licensed models and textures are supplied locally. Before previewing or deploying, copy the files listed in the [local asset manifest](design/local-assets.txt) from your Ride A Fish Creator Hub project.
 
 On Windows, run this from the repo root and enter the path to your Creator Hub scene folder.
 

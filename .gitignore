@@ -20,7 +20,7 @@ export/
 dist/
 .editor
 
-# Locally licensed Toon Adventure Island exports
+# Locally supplied licensed island assets
 /assets/Models/ride-a-fish-pack/
 /assets/Models/unity-sand-dune-shore-uv.glb
 /assets/Images/tai-shore-foam-frames-[0-3].png
