@@ -12,9 +12,13 @@ export const GUIDE_FRAME = 'assets/Images/ui/rean/dialogue-angular.png'
 export const GUIDE_NAMEPLATE = 'assets/Images/ui/rean/nameplate-angular.png'
 export const GUIDE_BUTTON = 'assets/Images/ui/rean/button-angular.png'
 export const BOOST_TEXTURE = 'assets/Images/KOFTE/Fish_05-boost.jpg'
+export const FOOTPRINT_TEXTURE = 'assets/Images/sand-footprint.png'
+export const SWIM_RIPPLES_TEXTURE = 'assets/Images/reference-swim-ripples.png'
+export const SWIM_SPRAY_TEXTURE = 'assets/Images/reference-swim-spray.png'
 
+const firstUseTextures = [COIN_TEXTURE, INDEX_ICON, FOOTPRINT_TEXTURE, SWIM_RIPPLES_TEXTURE, SWIM_SPRAY_TEXTURE]
 const textures = [
-  COIN_TEXTURE, INDEX_ICON, INDEX_BOOK, INDEX_TILE, INDEX_SILHOUETTES,
+  ...firstUseTextures, INDEX_BOOK, INDEX_TILE, INDEX_SILHOUETTES,
   GUIDE_FRAME, GUIDE_NAMEPLATE, GUIDE_BUTTON, BOOST_TEXTURE, ...POWERUP_ICONS,
   'assets/Images/ui/book/stat-hook.png', 'assets/Images/ui/book/stat-ruler.png',
   'assets/Images/ui/book/stat-coin.png', 'assets/Images/ui/book/stat-clock.png',
@@ -69,8 +73,8 @@ export function preloadStartupTextures(): void {
 
   function check() {
     const elapsed = Date.now() - startedAt
-    // Keep optional book and effect art warming without holding up the HUD.
-    if (elapsed >= 5_000 || (loaded.has(COIN_TEXTURE) && loaded.has(INDEX_ICON))) waiting = false
+    // Cap the startup overlay. Each effect also waits for its own textures.
+    if (elapsed >= 5_000 || firstUseTextures.every(textureReady)) waiting = false
     if (elapsed >= 20_000) { finish(); return }
     if (pending.size) return
     if (!retry.size) { finish(); return }

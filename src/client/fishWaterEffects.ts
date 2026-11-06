@@ -1,11 +1,10 @@
-import { AssetLoad, engine, Entity, getWorldPosition, getWorldRotation, ParticleSystem,
+import { engine, Entity, getWorldPosition, getWorldRotation, ParticleSystem,
   PBParticleSystem_BlendMode, PBParticleSystem_PlaybackState, PBParticleSystem_SimulationSpace,
   Transform } from '@dcl/sdk/ecs'
 import { Quaternion, Vector3 } from '@dcl/sdk/math'
 import { SEA_Y } from '../shared/config'
+import { SWIM_RIPPLES_TEXTURE, SWIM_SPRAY_TEXTURE, textureReady } from './startupTextures'
 
-const RIPPLES = 'assets/Images/reference-swim-ripples.png'
-const SPRAY = 'assets/Images/reference-swim-spray.png'
 const WHITE = { r: 1, g: 1, b: 1, a: 1 }
 const CLEAR_WHITE = { ...WHITE, a: 0 }
 const UP = Quaternion.fromEulerDegrees(-90, 0, 0)
@@ -25,6 +24,7 @@ export class FishWaterEffects {
   private jumping = false
   private splashTime = 0
   private emissionTime = 0
+  private materialWarmup = 0.12
 
   constructor(private root: Entity) {
     this.last = getWorldPosition(engine, root)
@@ -34,32 +34,28 @@ export class FishWaterEffects {
     Transform.create(this.rings, { position: Vector3.clone(position) })
     Transform.create(this.spray, { position, rotation: UP })
     ParticleSystem.create(this.rings, {
-      active: false, maxParticles: 64, rate: 3, lifetime: 1.5, gravity: 0,
+      active: false, playbackState: PBParticleSystem_PlaybackState.PS_STOPPED,
+      maxParticles: 64, rate: 3, lifetime: 1.5, gravity: 0,
       billboard: false, initialRotation: Quaternion.fromEulerDegrees(90, 0, 0),
       initialVelocitySpeed: { start: 0.3, end: 0 }, initialSize: { start: 0.5, end: 0.8 },
       sizeOverTime: { start: 0.5, end: 2 },
       colorOverTime: { start: WHITE, end: CLEAR_WHITE },
-      texture: { src: RIPPLES }, blendMode: PBParticleSystem_BlendMode.PSB_ADD,
+      texture: { src: SWIM_RIPPLES_TEXTURE }, blendMode: PBParticleSystem_BlendMode.PSB_ADD,
       simulationSpace: PBParticleSystem_SimulationSpace.PSS_WORLD,
       shape: ParticleSystem.Shape.Box({ size: Vector3.create(0.1, 0.001, 0.1) }),
       loop: true, prewarm: false
     })
     ParticleSystem.create(this.spray, {
-      active: false, maxParticles: 64, rate: 15, lifetime: 0.3, gravity: 0.98,
+      active: false, playbackState: PBParticleSystem_PlaybackState.PS_STOPPED,
+      maxParticles: 64, rate: 15, lifetime: 0.3, gravity: 0.98,
       billboard: true, initialVelocitySpeed: { start: 1, end: 0 },
       initialSize: { start: 1, end: 1 }, sizeOverTime: { start: 0.5, end: 1.5 },
       colorOverTime: { start: WHITE, end: { ...WHITE, a: 34 / 255 } },
-      texture: { src: SPRAY }, spriteSheet: { tilesX: 4, tilesY: 2, framesPerSecond: 24 },
+      texture: { src: SWIM_SPRAY_TEXTURE }, spriteSheet: { tilesX: 4, tilesY: 2, framesPerSecond: 24 },
       blendMode: PBParticleSystem_BlendMode.PSB_ADD,
       simulationSpace: PBParticleSystem_SimulationSpace.PSS_WORLD,
       shape: ParticleSystem.Shape.Cone({ angle: 60, radius: 0.4 }), loop: true, prewarm: false
     })
-  }
-
-  static preload(): void {
-    const entity = engine.addEntity()
-    Transform.create(entity)
-    AssetLoad.create(entity, { assets: [RIPPLES, SPRAY] })
   }
 
   update(dt: number, bodyHeight: number, fast: boolean, allowed: boolean, camera?: Vector3, jumpHeight = 0, onSplash?: (landing: boolean) => void): void {
@@ -68,6 +64,9 @@ export class FishWaterEffects {
     this.last = position
     const wasJumping = this.jumping
     this.jumping = jumpHeight > 0.001
+    // Let the renderer bind the preloaded sprites to the stopped emitters.
+    const warming = this.materialWarmup > 0
+    if (warming && textureReady(SWIM_RIPPLES_TEXTURE) && textureReady(SWIM_SPRAY_TEXTURE)) this.materialWarmup -= dt
     const teleported = distance > Math.max(4, dt * 20)
     const range = this.near ? 70 : 60
     this.near = allowed && !!camera && Vector3.distanceSquared(camera, position) < range * range
@@ -76,10 +75,10 @@ export class FishWaterEffects {
       this.setVisible(false)
       return
     }
-    if (this.jumping !== wasJumping) {
-      this.startSplash(position, bodyHeight, !this.jumping)
-      onSplash?.(!this.jumping)
-    }
+    const splash = this.jumping !== wasJumping
+    if (splash) onSplash?.(!this.jumping)
+    if (warming) return
+    if (splash) this.startSplash(position, bodyHeight, !this.jumping)
     if (this.splashTime > 0) {
       this.splashTime = Math.max(0, this.splashTime - dt)
       if (this.emissionTime > 0 && (this.emissionTime = Math.max(0, this.emissionTime - dt)) === 0) {

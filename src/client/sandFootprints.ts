@@ -1,9 +1,9 @@
-import { AssetLoad, ColliderLayer, engine, Entity, Material, MaterialTransparencyMode, MeshRenderer,
+import { ColliderLayer, engine, Entity, Material, MaterialTransparencyMode, MeshRenderer,
   RaycastQueryType, raycastSystem, TextureWrapMode, Transform, VisibilityComponent } from '@dcl/sdk/ecs'
 import { Quaternion, Vector3 } from '@dcl/sdk/math'
 import { SEA_Y } from '../shared/config'
+import { FOOTPRINT_TEXTURE, textureReady } from './startupTextures'
 
-const TEXTURE = 'assets/Images/sand-footprint.png'
 const LIMIT = 40
 const LIFETIME = 7
 const FADE_TIME = 2.5
@@ -29,15 +29,16 @@ export class SandFootprints {
 
   constructor(private canWalk: () => boolean) {
     Transform.create(this.probe)
-    AssetLoad.create(this.probe, { assets: [TEXTURE] })
     for (const name of ['Sand Dune', 'Sand Dune_2']) {
       const entity = engine.getEntityOrNullByName(name)
       if (entity !== null) this.sand.add(entity)
     }
+    this.prepareMark(this.side)
     engine.addSystem(dt => this.update(dt), undefined, 'sand-footprints')
   }
 
   private update(dt: number): void {
+    if (!textureReady(FOOTPRINT_TEXTURE)) return
     this.fadeClock += dt
     this.sampleClock += dt
     this.stepClock += dt
@@ -76,6 +77,7 @@ export class SandFootprints {
     const side = this.side
     const foot = { x: p.x + right.x * side * 0.115 - forward.x * 0.05,
       y: p.y, z: p.z + right.z * side * 0.115 - forward.z * 0.05 }
+    const mark = this.prepareMark(side)
     Transform.getMutable(this.probe).position = { x: foot.x, y: foot.y + 0.35, z: foot.z }
     const request = ++this.request
     this.pending = true; this.requestAge = 0
@@ -92,28 +94,32 @@ export class SandFootprints {
       if (!hit?.position || !hit.normalHit || hit.entityId === undefined
         || !this.sand.has(hit.entityId as Entity) || hit.normalHit.y < 0.65
         || hit.position.y < SEA_Y + 0.03 || Math.abs(foot.y - hit.position.y) > 0.24) return
-      this.stamp(hit.position, hit.normalHit, forward, side)
+      this.stamp(mark, hit.position, hit.normalHit, forward, side)
       this.side = -side
     })
   }
 
-  private stamp(position: Vector3, normal: Vector3, direction: Vector3, side: number): void {
-    let mark = this.marks[this.next]
-    if (!mark) {
-      const entity = engine.addEntity()
-      Transform.create(entity)
-      MeshRenderer.setPlane(entity)
-      Material.setPbrMaterial(entity, {
-        texture: Material.Texture.Common({ src: TEXTURE, wrapMode: TextureWrapMode.TWM_CLAMP,
-          tiling: { x: -side, y: 1 }, offset: { x: side > 0 ? 1 : 0, y: 0 } }),
-        albedoColor: { r: 0.38, g: 0.25, b: 0.12, a: 0.62 },
-        transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
-        metallic: 0, roughness: 1, specularIntensity: 0, castShadows: false
-      })
-      VisibilityComponent.create(entity, { visible: false })
-      mark = { entity, remaining: 0, opacity: 0 }
-      this.marks.push(mark)
-    }
+  // Prepare the material on a hidden plane while the ground query is in flight.
+  private prepareMark(side: number): Mark {
+    const existing = this.marks[this.next]
+    if (existing) return existing
+    const entity = engine.addEntity()
+    Transform.create(entity)
+    VisibilityComponent.create(entity, { visible: false })
+    MeshRenderer.setPlane(entity)
+    Material.setPbrMaterial(entity, {
+      texture: Material.Texture.Common({ src: FOOTPRINT_TEXTURE, wrapMode: TextureWrapMode.TWM_CLAMP,
+        tiling: { x: -side, y: 1 }, offset: { x: side > 0 ? 1 : 0, y: 0 } }),
+      albedoColor: { r: 0.38, g: 0.25, b: 0.12, a: 0 },
+      transparencyMode: MaterialTransparencyMode.MTM_ALPHA_BLEND,
+      metallic: 0, roughness: 1, specularIntensity: 0, castShadows: false
+    })
+    const mark = { entity, remaining: 0, opacity: 0 }
+    this.marks.push(mark)
+    return mark
+  }
+
+  private stamp(mark: Mark, position: Vector3, normal: Vector3, direction: Vector3, side: number): void {
     this.next = (this.next + 1) % LIMIT
     const n = Vector3.normalize(normal)
     const forward = Vector3.normalize(Vector3.subtract(direction, Vector3.scale(n, Vector3.dot(direction, n))))
@@ -124,9 +130,9 @@ export class SandFootprints {
     transform.position = Vector3.add(position, Vector3.scale(n, 0.012))
     transform.rotation = Quaternion.lookRotation(Vector3.scale(n, -1), toeDirection)
     transform.scale = Vector3.create(0.22, 0.4, 1)
-    VisibilityComponent.getMutable(mark.entity).visible = true
     mark.remaining = LIFETIME
     this.setOpacity(mark, 0.62)
+    VisibilityComponent.getMutable(mark.entity).visible = true
   }
 
   private fade(dt: number): void {

@@ -57,7 +57,6 @@ export class ArenaView {
   constructor(private contact: (pickup: LocalPickup) => void = () => {},
     private readonly localSplash?: (landing: boolean) => void) {
     FishPowerEffects.preload()
-    FishWaterEffects.preload()
   }
 
   tutorialAvailable(kind: 'food' | 'fish', id: number): boolean {
