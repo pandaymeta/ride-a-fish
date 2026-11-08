@@ -3,7 +3,8 @@ import { loadDockSurfaces } from './dockSurfaces'
 import { ISLAND_OUTLINE, useIslandRadiusProfile } from './islandProfile'
 import { UNITY_DUNE_MODEL, UNITY_DUNE_OUTLINE, UNITY_DUNE_RADII, UNITY_DUNE_SIZE } from './unityDuneProfile'
 import { addSandCollision, clearSandCollisions } from './sandCollision'
-import { configureLagoonFromIsland, LAGOON_AREA, LAGOON_CENTER_X, LAGOON_CENTER_Z, LAGOON_RADIUS } from './lagoon'
+import { configureLagoonFromIsland, setLagoonRadius, LAGOON_CENTER_X, LAGOON_CENTER_Z, LAGOON_RADIUS } from './lagoon'
+import { OCEAN_AREAS } from './oceanAreas'
 import { LOBBY_ISLAND, lobbySurfaceY, insideLobbyIsland } from './lobbyIsland'
 import { engine, getWorldPosition, Transform, GltfContainer } from '@dcl/sdk/ecs'
 import { getSceneInformation } from '~system/Runtime'
@@ -58,13 +59,26 @@ export async function loadSceneLayout(): Promise<void> {
   addSandCollision(position, scale, q, SEA_Y, unityDune ? shoreline : undefined)
   if (sameOutline && lowerPosition && lowerTransform) addSandCollision(lowerPosition, lowerTransform.scale, lowerTransform.rotation, SEA_Y)
   configureLagoonFromIsland()
-  const entryOffset = LAGOON_RADIUS * 0.55
+  // Static gates stay editor-owned. Read their unit-radius GLB scales, never move them here.
+  OCEAN_AREAS.forEach(area => {
+    const ring = engine.getEntityOrNullByName('Ocean Area - ' + area.name + ' Outer Edge')
+    if (ring === null) throw new Error('Missing editor-authored ocean area: ' + area.name)
+    const pose = Transform.get(ring)
+    const center = getWorldPosition(engine, ring)
+    if (Math.hypot(center.x - LAGOON_CENTER_X, center.z - LAGOON_CENTER_Z) > .1 ||
+      Math.abs(pose.scale.x - pose.scale.z) > .01 || pose.scale.x <= 0) throw new Error('Ocean areas must be concentric circles.')
+    area.outerRadius = pose.scale.x
+  })
+  if (OCEAN_AREAS.some((area, i) => i > 0 && area.outerRadius <= OCEAN_AREAS[i - 1].outerRadius)) throw new Error('Ocean area radii must increase.')
+  setLagoonRadius(OCEAN_AREAS[5].outerRadius)
+  const entryOffset = OCEAN_AREAS[0].outerRadius * 0.55
   ENTRY_POINTS.forEach((entry, index) => {
     entry.x = position.x + (index % 2 ? 1 : -1) * entryOffset
     entry.z = position.z + (index < 2 ? 1 : -1) * entryOffset
   })
   console.log('[LAYOUT] Circular arena:', JSON.stringify({ center: { x: LAGOON_CENTER_X, z: LAGOON_CENTER_Z },
-    radius: LAGOON_RADIUS, usableWaterBefore: LAGOON_AREA.before, usableWaterAfter: LAGOON_AREA.after }))
+    radius: LAGOON_RADIUS, commonRadius: OCEAN_AREAS[0].outerRadius }))
+  console.log('[AREAS] Collector fish, food, and Hammerhead: Common + Uncommon.', JSON.stringify(OCEAN_AREAS.map(a => ({ name: a.name, radius: a.outerRadius, size: a.requiredSize }))))
   const footprint = shoreline.map(([x, z]) => ({
     x: position.x + xx * x * scale.x + xz * z * scale.z,
     z: position.z + zx * x * scale.x + zz * z * scale.z

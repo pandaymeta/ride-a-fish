@@ -3,25 +3,31 @@ import { foodOutsideDock } from './foodClearance'
 import { ENTRY_POINTS, SEA } from '../shared/config'
 import { NpcAnchor } from '../shared/npcs'
 import { insideLagoon } from '../shared/lagoon'
+import { LAGOON_CENTER_X, LAGOON_CENTER_Z } from '../shared/lagoon'
+import { OCEAN_AREAS } from '../shared/oceanAreas'
+import { AREA_FOOD_COUNTS, areaAtPoint } from '../shared/areaBalance'
 import { FOOD_SPACING, randomSeaPoint, SEA_EDGE_MARGIN, SpawnPoint } from './respawnPoints'
 
 
 // Best-candidate sampling fills open areas without creating rows or tight clusters.
 export function createFoodSpawns(count: number, anchors: readonly NpcAnchor[]): SpawnPoint[] {
   const points: SpawnPoint[] = []
+  const commonTarget = Math.min(count, AREA_FOOD_COUNTS[0])
   const valid = (p: SpawnPoint): boolean =>
     insideLagoon(p.x, p.z, SEA_EDGE_MARGIN) && foodOutsideDock(p) &&
     p.x >= SEA.minX + SEA_EDGE_MARGIN && p.x <= SEA.maxX - SEA_EDGE_MARGIN &&
     p.z >= SEA.minZ + SEA_EDGE_MARGIN && p.z <= SEA.maxZ - SEA_EDGE_MARGIN &&
     ENTRY_POINTS.every(entry => Math.hypot(entry.x - p.x, entry.z - p.z) >= 4) &&
     anchors.every(fish => Math.hypot(fish.x - p.x, fish.z - p.z) >= 3) &&
-    points.every(food => Math.hypot(food.x - p.x, food.z - p.z) >= FOOD_SPACING)
+    points.every(food => Math.hypot(food.x - p.x, food.z - p.z) >= FOOD_SPACING) &&
+    areaAtPoint(p) === (points.length < commonTarget ? 0 : 1) &&
+    Math.abs(Math.hypot(p.x - LAGOON_CENTER_X, p.z - LAGOON_CENTER_Z) - OCEAN_AREAS[0].outerRadius) > SEA_EDGE_MARGIN
 
   // Two of the existing foods support growth from 1 to 3 before the first Blue Tang.
   for (let n = 0; n < 2 && points.length < count; n++) {
     const blockers = [...anchors.map(f => ({ ...f, clearance: 3 })),
       ...points.map(p => ({ ...p, clearance: FOOD_SPACING }))]
-    const point = chooseDockSeaPoint(blockers, n === 0 ? 14 : 22, n === 0 ? 22 : 32, foodOutsideDock)
+    const point = chooseDockSeaPoint(blockers, n === 0 ? 14 : 22, n === 0 ? 22 : 32, valid)
     if (point && valid(point)) points.push(point)
   }
   // One off-centre starter food per entry, rather than a straight trail.
@@ -39,8 +45,10 @@ export function createFoodSpawns(count: number, anchors: readonly NpcAnchor[]): 
   while (points.length < count) {
     let best: SpawnPoint | undefined
     let clearance = -1
+    // Keep most growth close to the dock so the first area goal is approachable.
+    const common = points.length < commonTarget
     for (let sample = 0; sample < 128; sample++) {
-      const point = randomSeaPoint()
+      const point = randomSeaPoint(OCEAN_AREAS[common ? 0 : 1].outerRadius, common ? 0 : OCEAN_AREAS[0].outerRadius)
       if (!valid(point)) continue
       const gap = points.length ? Math.min(...points.map(food => Math.hypot(food.x - point.x, food.z - point.z))) : Infinity
       if (gap > clearance) { best = point; clearance = gap }

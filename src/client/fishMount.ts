@@ -3,7 +3,9 @@ import { Quaternion, Vector3 } from '@dcl/sdk/math'
 import { movePlayerTo } from '~system/RestrictedActions'
 import { SEA_Y, SPEED } from '../shared/config'
 import { constrainToLagoon, moveFishInLagoon } from '../shared/lagoon'
-import { playRiderSittingPose, RIDER_HIP_HEIGHT } from './riderPose'
+import { unlockedOceanRadius } from '../shared/oceanAreas'
+import { riderSeatOffsetY } from '../shared/fishGeometry'
+import { RIDER_HIP_HEIGHT } from './riderPose'
 
 // Native platform motion carries the avatar; input is gated by confirmed seating.
 export class FishMount {
@@ -26,7 +28,8 @@ export class FishMount {
   private seatPromise?: Promise<boolean>
   private finishSeat?: (success: boolean) => void
 
-  constructor(readonly root: Entity, private height: () => number, private bodyRadius: () => number) {
+  constructor(readonly root: Entity, private height: () => number, private bodyRadius: () => number,
+    private onReseated: () => void, private mass: () => number) {
     this.platform = engine.addEntity()
     Transform.create(this.platform, { parent: root, position: Vector3.create(0, this.seatHeight - 0.05, 0),
       scale: Vector3.create(1.25, 0.1, 1.25) })
@@ -40,7 +43,7 @@ export class FishMount {
 
   get position(): Vector3 {
     const t = Transform.get(this.root)
-    const offset = Vector3.rotate(Vector3.create(0, this.seatHeight + 0.05, 0), t.rotation)
+    const offset = Vector3.rotate(Vector3.create(0, riderSeatOffsetY(this.height()), 0), t.rotation)
     return Vector3.add(t.position, offset)
   }
 
@@ -62,7 +65,7 @@ export class FishMount {
     // Keep growth, idle wave motion and an existing overlap clear of the shore too.
     const rootPose = Transform.getMutable(this.root)
     const clearance = this.bodyRadius()
-    constrainToLagoon(rootPose.position, clearance, clearance)
+    constrainToLagoon(rootPose.position, clearance, clearance, unlockedOceanRadius(this.mass()))
     const platform = Transform.getMutable(this.platform)
     if (Math.abs(platform.position.y - (this.seatHeight - 0.05)) > 0.001) platform.position.y = this.seatHeight - 0.05
     if (!this.checking) return
@@ -89,14 +92,16 @@ export class FishMount {
       // One delayed avatar transform must not reset wave motion or reseat at the apex.
       // Persistent drift still uses the existing safe reseat/recovery path.
       if (this.boarding || !this.seated || this.driftTime >= 0.2) {
-        this.seated = false; this.stableTime = 0; this.releaseMovement = true
+        this.seated = false; this.stableTime = 0
+        if (this.boarding) this.releaseMovement = true
       }
       if (this.driftTime >= 0.2 && this.retryWait <= 0) {
         if (this.attempts >= 4) { this.fail(); return }
         this.attempts++; this.retryWait = 1; this.driftTime = 0
         this.placement = this.reseat().finally(() => { this.placement = undefined })
       }
-      return
+      // Keep held swimming input through a delayed avatar sample while the seat is still valid.
+      if (!this.seated || this.placement) return
     }
     if (!enabled) return
     const camera = Transform.getOrNull(engine.CameraEntity)
@@ -119,7 +124,7 @@ export class FishMount {
       const x = (Math.sin(yaw) * forward + Math.cos(yaw) * right) / length
       const z = (Math.cos(yaw) * forward - Math.sin(yaw) * right) / length
       const step = Math.min(dt, 0.05) * SPEED * speedMultiplier
-      moveFishInLagoon(t.position, x * step, z * step, this.bodyRadius())
+      moveFishInLagoon(t.position, x * step, z * step, this.bodyRadius(), unlockedOceanRadius(this.mass()))
       t.rotation = Quaternion.slerp(t.rotation, Quaternion.fromEulerDegrees(0, Math.atan2(x, z) * 180 / Math.PI, 0), 1 - Math.exp(-dt * 12))
     }
   }
@@ -143,7 +148,7 @@ export class FishMount {
       const forward = Vector3.rotate(Vector3.Forward(), Transform.get(this.root).rotation)
       const result = await movePlayerTo({ newRelativePosition: seat, duration: 0.12,
         avatarTarget: Vector3.create(seat.x + forward.x * 10, seat.y, seat.z + forward.z * 10) })
-      if (result.success && !this.disposed && !this.boarding) await playRiderSittingPose()
+      if (result.success && this.checking && !this.disposed && !this.boarding) this.onReseated()
     } catch (error) {
       if (!this.disposed) console.log('[CLIENT] Retrying fish seat.', String(error))
     }

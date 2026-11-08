@@ -35,16 +35,22 @@ export function configureLagoonFromIsland(): void {
 
 export function lagoonRadius(_angle: number): number { return LAGOON_RADIUS }
 
+export function setLagoonRadius(radius: number): void {
+  LAGOON_RADIUS = radius
+  Object.assign(LAGOON_BOUNDS, { minX: LAGOON_CENTER_X - radius, maxX: LAGOON_CENTER_X + radius,
+    minZ: LAGOON_CENTER_Z - radius, maxZ: LAGOON_CENTER_Z + radius })
+}
+
 export function insideLagoon(x: number, z: number, margin = 0): boolean {
   if (insideSandCollision(x, z, margin)) return false
   const dx = x - LAGOON_CENTER_X, dz = z - LAGOON_CENTER_Z
   return dx * dx + dz * dz <= (LAGOON_RADIUS - margin) ** 2
 }
 
-export function constrainToLagoon(point: { x: number; z: number }, margin = LAGOON_PLAYER_MARGIN, islandClearance = 3): void {
+export function constrainToLagoon(point: { x: number; z: number }, margin = LAGOON_PLAYER_MARGIN, islandClearance = 3, outerRadius = LAGOON_RADIUS): void {
   resolveSandCollision(point, Math.max(islandClearance, margin))
   const dx = point.x - LAGOON_CENTER_X, dz = point.z - LAGOON_CENTER_Z
-  const squared = dx * dx + dz * dz, radius = LAGOON_RADIUS - margin
+  const squared = dx * dx + dz * dz, radius = Math.max(0, Math.min(LAGOON_RADIUS, outerRadius) - margin)
   if (squared <= radius * radius) return
   const scale = radius / Math.sqrt(squared)
   point.x = LAGOON_CENTER_X + dx * scale
@@ -52,10 +58,10 @@ export function constrainToLagoon(point: { x: number; z: number }, margin = LAGO
 }
 
 // Swept movement uses body-sized contact rather than the old fixed island exclusion zone.
-export function moveFishInLagoon(point: { x: number; z: number }, dx: number, dz: number, bodyRadius: number): void {
+export function moveFishInLagoon(point: { x: number; z: number }, dx: number, dz: number, bodyRadius: number, outerRadius = LAGOON_RADIUS): void {
   const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.25))
   for (let n = 0; n < steps; n++) {
     point.x += dx / steps; point.z += dz / steps
-    constrainToLagoon(point, bodyRadius, bodyRadius)
+    constrainToLagoon(point, bodyRadius, bodyRadius, outerRadius)
   }
 }

@@ -4,7 +4,7 @@ import { useInteraction } from './interaction'
 import { actions } from '../client/state'
 import { TutorialControls } from './TutorialControls'
 import { TutorialQuestRow } from './TutorialQuestRow'
-import { GUIDE_BUTTON, GUIDE_FRAME, GUIDE_NAMEPLATE, textureReady } from '../client/startupTextures'
+import { GUIDE_BUTTON, GUIDE_FRAME, GUIDE_NAMEPLATE, QUEST_FRAME, textureReady } from '../client/startupTextures'
 
 export interface State {
   questVisible: boolean; dialogueVisible: boolean
@@ -28,8 +28,10 @@ function acknowledge() { actions.acknowledgeGuide() }
 /** @ui-component */
 export function TutorialHud() {
   const quest = useInteraction({
-    base: { uiTransform: { width: 270, height: 216, positionType: 'absolute', position: { right: 32, top: 220 },
-      padding: 12, flexDirection: 'column', borderRadius: 10, pointerFilter: 'none' }, uiBackground: { color: { r: .95, g: .84, b: .65, a: .96 } } },
+    base: { uiTransform: { width: 302, height: 268, positionType: 'absolute', position: { right: 32, top: 220 },
+      padding: { top: 25, bottom: 25, left: 26, right: 26 }, flexDirection: 'column', pointerFilter: 'none' },
+      uiBackground: textureReady(QUEST_FRAME) ? { texture: { src: QUEST_FRAME }, textureMode: 'stretch' }
+        : { color: { r: .99, g: .86, b: .69, a: 1 } } },
     active: { uiTransform: { display: 'none' } }
   }, state.questVisible !== true)
   const dialogue = useInteraction({
@@ -48,8 +50,10 @@ export function TutorialHud() {
   })
   return <UiEntity uiTransform={{ width: '100%', height: '100%', positionType: 'absolute', position: { top: 0, left: 0 }, pointerFilter: 'none' }}>
     <UiEntity {...quest}>
-      <Label value="<b>Tutorial Quests</b>" font="serif" fontSize={21} color={{ r: .24, g: .11, b: .04, a: 1 }} textAlign="middle-left"
-        uiTransform={{ width: '100%', height: 30, pointerFilter: 'none' }} />
+      <Label value="<b>Tutorial Quests</b>" font="serif" fontSize={21} color={{ r: .3, g: .14, b: .06, a: 1 }} textAlign="middle-left"
+        uiTransform={{ width: '100%', height: 32, pointerFilter: 'none' }} />
+      <UiEntity uiTransform={{ width: '100%', height: 1, margin: { top: 3, bottom: 7 }, pointerFilter: 'none' }}
+        uiBackground={{ color: { r: .65, g: .43, b: .29, a: .32 } }} />
       <TutorialQuestRow title={state.rideLabel} complete={state.rideDone} />
       <TutorialQuestRow title={state.foodLabel} complete={state.foodDone} />
       <TutorialQuestRow title={state.fishLabel} complete={state.fishDone} />

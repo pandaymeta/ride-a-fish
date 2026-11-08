@@ -1,5 +1,6 @@
 import type { FishState } from '../shared/messages'
 import { ARENA_TICK_SECONDS } from '../shared/fishJump'
+import { constrainSharkToWater } from '../shared/sharkWaters'
 interface Pose { tick: number; x: number; z: number; yaw: number }
 
 const BUFFER_TICKS = 3
@@ -47,6 +48,8 @@ export class SharkMotion {
     this.output.z += (z - this.output.z) * blend
     const yawError = yaw - this.output.yaw
     this.output.yaw += Math.atan2(Math.sin(yawError), Math.cos(yawError)) * blend
+    // Extrapolation may lead the server pose briefly; keep the rendered shark inside too.
+    constrainSharkToWater(this.output)
     return this.output
   }
 }

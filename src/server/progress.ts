@@ -4,7 +4,7 @@ import { PlayerProfile, Progress } from '../shared/messages'
 import { SPECIES } from '../shared/config'
 
 interface RecordState {
-  progress: Progress; guest: boolean; revision: number; savedRevision: number; saving: boolean
+  progress: Progress; guest: boolean; revision: number; savedRevision: number; saving: boolean; saveRequested: boolean
   peak: number; result: string
 }
 const KEY = 'ride-a-fish-progress-v3'
@@ -37,7 +37,8 @@ export class ProgressStore {
         : { version: 3, cash: this.integer(source.cash ?? source.food), counts: this.numbers(source.counts),
           largest: this.numbers(source.largest), best: this.integer(source.best) }
       progress.tutorial = readTutorial(source?.tutorial)
-      this.players.set(address, { progress, guest, revision: 0, savedRevision: 0, saving: false,
+      progress.parkedMass = this.fishMass(source?.parkedMass)
+      this.players.set(address, { progress, guest, revision: 0, savedRevision: 0, saving: false, saveRequested: false,
         peak: 0, result: 'Find your Clownfish at the dock and press E to ride. Collect smaller fish and avoid larger predators.' })
       return true
     } catch (error) {
@@ -73,7 +74,22 @@ export class ProgressStore {
 
   start(address: string, mass = 1): void {
     const p = this.players.get(address)
-    if (p) { p.peak = mass; p.result = '' }
+    if (p) {
+      p.peak = mass; p.result = ''
+      // A confirmed ride puts this fish back at risk; only docking banks its size again.
+      this.park(address, 1)
+    }
+  }
+
+  parkedMass(address: string): number {
+    return this.players.get(address)?.progress.parkedMass ?? 1
+  }
+
+  park(address: string, mass: number): void {
+    const p = this.players.get(address)
+    if (!p || !Number.isInteger(mass) || mass < 1 || mass > 0x7fffffff || p.progress.parkedMass === mass) return
+    p.progress.parkedMass = mass
+    p.revision++
   }
 
   grow(address: string, mass: number): void {
@@ -116,20 +132,35 @@ export class ProgressStore {
 
   async flush(address: string): Promise<void> {
     const p = this.players.get(address)
-    if (!p || p.guest || p.saving || p.savedRevision === p.revision) return
+    if (!p || p.guest || p.savedRevision === p.revision) return
+    // A dock/leave checkpoint must follow an older in-flight save, not wait for another timer.
+    if (p.saving) { p.saveRequested = true; return }
     p.saving = true
-    const revision = p.revision
-    const snapshot: Progress = { ...p.progress, tutorial: { ...p.progress.tutorial! }, counts: [...p.progress.counts], largest: [...p.progress.largest] }
     try {
-      if (await Storage.player.set(address, KEY, snapshot)) p.savedRevision = revision
-      else console.error('[SERVER] Collection save pending; will retry.')
+      do {
+        p.saveRequested = false
+        const revision = p.revision
+        const snapshot: Progress = { ...p.progress, tutorial: { ...p.progress.tutorial! }, counts: [...p.progress.counts], largest: [...p.progress.largest] }
+        if (await Storage.player.set(address, KEY, snapshot)) p.savedRevision = revision
+        else { console.error('[SERVER] Collection save pending; will retry.'); break }
+      } while (p.saveRequested && p.savedRevision !== p.revision)
     } catch (error) {
       console.error('[SERVER] Collection save failed; will retry.', String(error))
     } finally { p.saving = false }
   }
 
+  forget(address: string): boolean {
+    const p = this.players.get(address)
+    if (!p || p.saving || (!p.guest && p.savedRevision !== p.revision)) return false
+    // A later visit must read Storage again, including progress saved by another instance.
+    return this.players.delete(address)
+  }
+
   private integer(value: unknown): number {
     return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
+  }
+  private fishMass(value: unknown): number {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 0x7fffffff ? value : 1
   }
   private numbers(value: unknown): number[] {
     return SPECIES.map((_, i) => this.integer(Array.isArray(value) ? value[i] : 0))

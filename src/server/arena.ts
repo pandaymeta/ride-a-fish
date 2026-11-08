@@ -6,15 +6,18 @@ import { ARENA_TICK_SECONDS, FISH_JUMP_COOLDOWN } from '../shared/fishJump'
 import { insideLobbyIsland } from '../shared/lobbyIsland'
 import { SharkContact } from './sharkContact'
 import { SharkBrain, type SharkBody } from './sharkBrain'
-import { isShark, SHARK_RULES } from '../shared/shark'
+import { isShark, SHARK_RULES, SHARK_SPECIES } from '../shared/shark'
 import { ARENA_MAX_PLAYER_Y, ENTRY_POINTS, ENTRY_SHIELD, FOOD_COUNT, MAX_RIDERS, SEA, SPECIES } from '../shared/config'
 import { FoodState, PickupNotice, SharkTouch } from '../shared/messages'
 import { NpcAnchor } from '../shared/npcs'
 import { createFoodSpawns } from './foodSpawns'
-import { chooseRespawnPoint, FOOD_SPACING, SpawnBlocker, SpawnPoint } from './respawnPoints'
+import { chooseRespawnPoint, chooseAreaRespawnPoint, FOOD_SPACING, SpawnBlocker, SpawnPoint } from './respawnPoints'
 import { distanceSquared, fishInEatingContact, foodEatRadius } from '../shared/eating'
 import { ArenaPowerups, PowerupEvent } from './powerups'
 import { insideLagoon, LAGOON_CENTER_X, LAGOON_CENTER_Z } from '../shared/lagoon'
+import { constrainSharkToWater, sharkRoamRadius, withinSharkBoundary } from '../shared/sharkWaters'
+import { constrainToUnlockedOcean, OCEAN_AREAS, stockedOceanRadius } from '../shared/oceanAreas'
+import { areaAtPoint, foodGrowthAt, npcGrowthMass, npcRespawnSeconds } from '../shared/areaBalance'
 
 interface Fish extends SharkBody {
   boardingUntil: number
@@ -28,7 +31,8 @@ export type ArenaEvent =
   | { type: 'end'; owner: string; reason: string }
   | { type: 'eaten'; owner: string; eventId: string; byShark: boolean }
   | { type: 'growth'; owner: string; mass: number }
-  | { type: 'pickup'; owner: string; pickup: Omit<PickupNotice, 'cashTotal'> }
+  | { type: 'parked'; owner: string; mass: number }
+  | { type: 'pickup'; owner: string; coins: number; pickup: Omit<PickupNotice, 'cashTotal'> }
 
 export class Arena {
   readonly fish = new Map<number, Fish>()
@@ -57,13 +61,14 @@ export class Arena {
     return Array.from(this.fish.values()).find(f => f.owner === owner)
   }
 
-  reserve(owner: string, slot: number): boolean {
+  reserve(owner: string, slot: number, mass = 1): boolean {
     if (this.getMount(owner)) return true
     if (Array.from(this.fish.values()).filter(f => f.owner).length >= MAX_RIDERS) return false
     const p = BOARDING_SPOTS[slot]
     if (!p) return false
+    const restoredMass = Number.isInteger(mass) && mass >= 1 && mass <= 0x7fffffff ? mass : 1
     this.fish.set(this.nextId, { id: this.nextId++, owner, species: 0, skin: 0, slot: -1,
-      x: p.x, z: p.z, mass: 1, yaw: p.yaw, shield: 0, tracking: false, tutorialProtected: false, powerShield: 0, boost: 0,
+      x: p.x, z: p.z, mass: restoredMass, yaw: p.yaw, shield: 0, tracking: false, tutorialProtected: false, powerShield: 0, boost: 0,
       boardState: 0, boardSlot: slot, boardingUntil: 0 })
     return true
   }
@@ -102,6 +107,7 @@ export class Arena {
     f.x = spot.x; f.z = spot.z; f.yaw = spot.yaw
     f.boardState = 0; f.tracking = false; f.boardingUntil = 0
     f.shield = 0; f.jumpTick = 0; f.motion = 0; f.dockLanding = undefined
+    this.events.push({ type: 'parked', owner, mass: f.mass })
     return true
   }
 
@@ -120,9 +126,12 @@ export class Arena {
     if (position.x < SEA.minX || position.x > SEA.maxX || position.z < SEA.minZ || position.z > SEA.maxZ || !insideLagoon(position.x, position.z) || position.y < -3) {
       this.leave(owner, 'You left the sea. Return to the dock to ride again.'); return
     }
-    const dx = position.x - f.x, dz = position.z - f.z
+    // A client cannot collect or bite in a locked area by reporting a position beyond its gate.
+    const allowed = { x: position.x, z: position.z }
+    constrainToUnlockedOcean(allowed, f.mass, LAGOON_CENTER_X, LAGOON_CENTER_Z)
+    const dx = allowed.x - f.x, dz = allowed.z - f.z
     if (Math.hypot(dx, dz) > 0.01) f.yaw = Math.atan2(dx, dz)
-    f.x = position.x; f.z = position.z; f.tracking = true
+    f.x = allowed.x; f.z = allowed.z; f.tracking = true
   }
 
   confirmSharkContact(owner: string, report: SharkTouch): void {
@@ -130,13 +139,15 @@ export class Arena {
     const rider = this.getMount(owner), shark = this.fish.get(eater)
     if (!rider || rider.id !== prey || rider.boardState !== 2 || !rider.tracking || !shark || !isShark(shark)) return
     if (tick > this.tick || tick < this.tick - 20 || rider.mass >= shark.mass) return
-    if (rider.tutorialProtected || rider.shield > 0 || rider.powerShield > 0 || shark.shield > 0) return
+    if (rider.tutorialProtected || rider.shield > 0 || rider.powerShield > 0 || shark.shield > 0 || !withinSharkBoundary(rider)) return
     this.sharkContact.confirm(this.time, shark, rider, report)
   }
 
   leave(owner: string, reason = 'You returned to the island lobby.'): void {
     const f = this.getMount(owner)
     if (!f) return
+    // A dock return already approved by the server remains safe if its client disconnects.
+    if (f.boardState === 3) this.finishDocking(owner)
     this.fish.delete(f.id)
     this.events.push({ type: 'end', owner, reason })
   }
@@ -176,7 +187,7 @@ export class Arena {
       if ((eater.owner && eater.boardState !== 2) || (!eater.owner && !predator) || !eater.tracking || !this.fish.has(eater.id)) continue
       for (const prey of ordered) {
         if (eater.id === prey.id || !this.fish.has(prey.id) || eater.mass <= prey.mass) continue
-        if (predator && !prey.owner) continue
+        if (predator && (!prey.owner || !withinSharkBoundary(prey))) continue
         if (prey.owner && (prey.boardState !== 2 || !prey.tracking)) continue
         if (isShark(prey) && prey.shield > 0) continue
         // Entry grace blocks PvP both ways. A collected shield protects its holder, who can still eat unshielded prey.
@@ -188,14 +199,14 @@ export class Arena {
         if (eater.owner) this.events.push({ type: 'growth', owner: eater.owner, mass: live.mass })
         if (!prey.owner) {
           live.tutorialProtected = false
-          this.pickup(live, 1, prey.id, prey.species, prey.x, prey.z, prey.mass)
+          this.pickup(live, 1, prey.id, prey.species, prey.x, prey.z, prey.mass, SPECIES[prey.species].mass)
           this.events.push({ type: 'catch', owner: eater.owner, species: prey.species, mass: prey.mass })
         }
         if (prey.owner) this.events.push({ type: 'eaten', owner: prey.owner, eventId: this.session + ':eaten:' + prey.id, byShark: predator })
         if (prey.owner) this.events.push({ type: 'end', owner: prey.owner,
           reason: predator ? 'The Hammerhead Shark ate you. Your cash and discoveries are safe.'
             : 'A larger player fish ate you. Your discoveries are safe.' })
-        else this.pending.push({ at: this.time + 8, slot: prey.slot, x: prey.x, z: prey.z })
+        else this.pending.push({ at: this.time + (isShark(prey) ? 8 : npcRespawnSeconds(prey.species, areaAtPoint(this.anchors[prey.slot]))), slot: prey.slot, x: prey.x, z: prey.z })
       }
     }
     for (const food of this.food) {
@@ -225,10 +236,11 @@ export class Arena {
     for (const food of this.food) {
       if (food.respawnAt === 0 && distanceSquared(f.x, f.z, food.x, food.z) < reach * reach) {
         food.respawnAt = this.time + 4
-        f.mass++
+        const growth = foodGrowthAt(food)
+        f.mass += growth
         reach = foodEatRadius(f.mass)
         this.events.push({ type: 'growth', owner: f.owner, mass: f.mass })
-        this.pickup(f, 0, food.id, -1, food.x, food.z, 1)
+        this.pickup(f, 0, food.id, -1, food.x, food.z, growth, 1)
       }
     }
   }
@@ -241,13 +253,22 @@ export class Arena {
       blockers.push({ x: food.x, z: food.z, clearance: npc ? 3 : FOOD_SPACING })
     }
     for (const fish of this.fish.values()) {
-      blockers.push({ x: fish.x, z: fish.z, clearance: fish.owner ? 6 : npc ? 10 : 3 })
+      blockers.push({ x: fish.x, z: fish.z, clearance: fish.owner ? 6 : npc ? 7 : 3 })
     }
     for (const powerup of this.powerups.items) blockers.push({ x: powerup.x, z: powerup.z, clearance: 4 })
     const starter = npc ? ('slot' in previous && previous.slot === 0) : previous === this.food[0] || previous === this.food[1]
-    const allowed = npc ? undefined : foodOutsideDock
+    const slot = npc && 'slot' in previous ? Number(previous.slot) : -1
+    const roamingShark = npc && slot >= 0 && this.anchors[slot]?.species === SHARK_SPECIES
+    const area = areaAtPoint(npc && slot >= 0 ? this.anchors[slot] : previous)
+    const common = area === 0
+    const allowed = (p: SpawnPoint): boolean => {
+      const radius = Math.hypot(p.x - LAGOON_CENTER_X, p.z - LAGOON_CENTER_Z)
+      if (roamingShark) return insideLagoon(p.x, p.z, 4) && withinSharkBoundary(p, 4)
+      return (npc || foodOutsideDock(p)) && (common ? radius < OCEAN_AREAS[0].outerRadius - 4
+        : radius > OCEAN_AREAS[0].outerRadius + 4 && radius < stockedOceanRadius() - 4)
+    }
     return (starter ? chooseDockSeaPoint(blockers, npc ? 12 : 14, npc ? 25 : 32, allowed) : undefined)
-      ?? chooseRespawnPoint(blockers, allowed)
+      ?? (roamingShark ? chooseRespawnPoint(blockers, allowed, sharkRoamRadius()) : chooseAreaRespawnPoint(area, blockers, allowed))
   }
 
   private powerupBlockers(): SpawnBlocker[] {
@@ -257,8 +278,8 @@ export class Arena {
     return blockers
   }
 
-  private pickup(fish: Fish, kind: number, target: number, species: number, x: number, z: number, value: number): void {
-    this.events.push({ type: 'pickup', owner: fish.owner, pickup: {
+  private pickup(fish: Fish, kind: number, target: number, species: number, x: number, z: number, value: number, coins: number): void {
+    this.events.push({ type: 'pickup', owner: fish.owner, coins, pickup: {
       eventId: this.session + ':' + (++this.pickupSequence), eater: fish.id, tick: this.tick,
       kind, target, species, x, z, value, mass: fish.mass
     } })
@@ -266,9 +287,10 @@ export class Arena {
 
   private spawnNpc(anchor: NpcAnchor): void {
     const predator = isShark({ owner: '', species: anchor.species })
-    if (predator) this.sharkBrain.reset()
+    const point = { x: anchor.x, z: anchor.z }
+    if (predator) { this.sharkBrain.reset(); constrainSharkToWater(point) }
     this.fish.set(this.nextId, { id: this.nextId++, owner: '', species: anchor.species, skin: 0, slot: anchor.slot,
-      x: anchor.x, z: anchor.z, yaw: anchor.yaw, mass: SPECIES[anchor.species].mass,
+      x: point.x, z: point.z, yaw: anchor.yaw, mass: predator ? SPECIES[anchor.species].mass : npcGrowthMass(anchor.species, anchor, SPECIES[anchor.species].mass),
       shield: predator ? SHARK_RULES.spawnProtection : 0, tracking: predator, tutorialProtected: false,
       powerShield: 0, boost: 0, motion: 0, boardState: 2, boardSlot: -1, boardingUntil: 0 })
   }

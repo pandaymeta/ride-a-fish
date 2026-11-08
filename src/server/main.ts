@@ -3,7 +3,7 @@ import { SPEED_POWERUP } from '../shared/powerups'
 import { registerGuide } from './guide'
 import { engine, PlayerIdentityData, Transform } from '@dcl/sdk/ecs'
 import { fishSeatY } from '../shared/fishGeometry'
-import { SEA_Y, SPECIES } from '../shared/config'
+import { FOOD_COUNT, SEA_Y, SPECIES } from '../shared/config'
 import { readNpcAnchors } from '../shared/npcs'
 import { room } from '../shared/messages'
 import { Arena } from './arena'
@@ -15,7 +15,7 @@ import { ProgressStore } from './progress'
 export function startServer(localPreview = false): void {
   const arena = new Arena(readNpcAnchors())
   const store = new ProgressStore()
-  const boarding = new BoardingQueue(arena)
+  const boarding = new BoardingQueue(arena, address => store.parkedMass(address))
   const identities = new Map<string, { guest: boolean; position?: { x: number; y: number; z: number } }>()
   const lastEnter = new Map<string, number>()
   const joining = new Set<string>()
@@ -118,6 +118,7 @@ export function startServer(localPreview = false): void {
       store.start(address, fish.mass)
       lesson(address, TUTORIAL_RIDE)
       sendProfile(address)
+      void store.flush(address)
     }
   })
   function sendDockReady(address: string): void {
@@ -151,11 +152,7 @@ export function startServer(localPreview = false): void {
     refreshIdentities()
     const p = identities.get(address)?.position, landing = fish.dockLanding
     if (!p || Math.hypot(p.x - landing.x, p.z - landing.z) > 1.25 || Math.abs(p.y - landing.y) > 0.8) return
-    if (arena.finishDocking(address)) {
-      lesson(address, TUTORIAL_DOCK)
-      store.end(address, 'Your fish is safely parked. Press E beside it to ride again.')
-      sendProfile(address); boarding.status(address)
-    }
+    arena.finishDocking(address)
   })
   room.onMessage('leave', (data, context) => {
     if (!context) return
@@ -177,6 +174,13 @@ export function startServer(localPreview = false): void {
     accumulated = Math.min(accumulated + dt, 0.25)
     while (accumulated >= 0.05) { arena.step(0.05); accumulated -= 0.05 }
     for (const event of arena.events.splice(0)) {
+      if (event.type === 'parked') {
+        store.park(event.owner, event.mass)
+        lesson(event.owner, TUTORIAL_DOCK)
+        store.end(event.owner, 'Your fish is safely parked. Press E beside it to ride again.')
+        sendProfile(event.owner); boarding.status(event.owner)
+        void store.flush(event.owner)
+      }
       if (event.type === 'eaten') {
         void room.send('eaten', { eventId: event.eventId, byShark: event.byShark }, { to: [event.owner] })
       }
@@ -187,7 +191,7 @@ export function startServer(localPreview = false): void {
       }
       if (event.type === 'pickup') {
         if (event.pickup.kind === 0) lesson(event.owner, TUTORIAL_FOOD)
-        const cashTotal = store.collectCash(event.owner, event.pickup.value)
+          const cashTotal = store.collectCash(event.owner, event.coins)
         void room.send('pickup', { ...event.pickup, cashTotal }, { to: [event.owner] })
       }
       if (event.type === 'catch') {
@@ -224,8 +228,11 @@ export function startServer(localPreview = false): void {
           if (!missingSince.has(address)) missingSince.set(address, arena.time)
           if (arena.time - missingSince.get(address)! > 3) {
             boarding.remove(address)
+            const hadFish = !!arena.getMount(address)
             arena.leave(address, 'You left the sea.')
             void store.flush(address)
+            // Process any final docking event before discarding a successfully saved profile.
+            if (!hadFish && store.forget(address)) missingSince.delete(address)
           }
         }
       }
@@ -235,5 +242,5 @@ export function startServer(localPreview = false): void {
       for (const address of store.players.keys()) void store.flush(address)
     }
   })
-  console.log('[SERVER] Ride A Fish ready: 10 riders, 10 protected dock berths, 8 static NPCs, 1 shark, 60 foods, native camera.')
+  console.log('[SERVER] Ride A Fish ready: 10 riders, 10 dock berths, 40 collectible NPCs, 1 roaming shark, ' + FOOD_COUNT + ' foods. Common food +1; Uncommon food +5.')
 }

@@ -17,7 +17,7 @@ export class FishWaveMotion {
   private pitch = 0
 
   update(root: Entity, baseHeight: number, time: number, dt: number,
-    moving: boolean, boosting: boolean, enabled = true, bodyHeight = 1, steering = 0, jumpHeight = 0, jumpVelocity = 0, airborne = false): void {
+    moving: boolean, boosting: boolean, enabled = true, bodyHeight = 1, steering = 0, jumpHeight = 0, jumpVelocity = 0, airborne = false): Quaternion {
     const t = Transform.getMutable(root)
     const q = t.rotation
     const yaw = Math.atan2(2 * (q.w * q.y + q.x * q.z), 1 - 2 * (q.x * q.x + q.y * q.y))
@@ -52,7 +52,8 @@ export class FishWaveMotion {
       : -18 * Math.tanh(this.verticalSpeed * 1.8) * inertia
     this.pitch += (targetPitch - this.pitch) * (1 - Math.exp(-dt * 6))
     t.position.y = baseHeight + totalHeave
-    t.rotation = Quaternion.multiply(Quaternion.fromEulerDegrees(0, yaw * DEG, 0),
-      Quaternion.fromEulerDegrees(this.pitch, 0, this.bank))
+    const tilt = Quaternion.fromEulerDegrees(this.pitch, 0, this.bank)
+    t.rotation = Quaternion.multiply(Quaternion.fromEulerDegrees(0, yaw * DEG, 0), tilt)
+    return tilt
   }
 }

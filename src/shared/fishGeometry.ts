@@ -17,6 +17,10 @@ export function fishWaterHeight(fish: Pick<FishState, 'owner' | 'species' | 'mas
 
 export const RIDER_HIP_HEIGHT = 0.155
 
+export function riderSeatOffsetY(bodyHeight: number): number {
+  return bodyHeight / 2 - RIDER_HIP_HEIGHT + 0.05
+}
+
 export function fishSeatY(fish: Pick<FishState, 'owner' | 'species' | 'mass' | 'skin'>): number {
-  return fishWaterHeight(fish) + PLAYER_SKINS[fish.skin].height * fishBodyScale(fish) / 2 - RIDER_HIP_HEIGHT + 0.05
+  return fishWaterHeight(fish) + riderSeatOffsetY(PLAYER_SKINS[fish.skin].height * fishBodyScale(fish))
 }

@@ -1,14 +1,15 @@
 import { FISH_SWIM_CLIP } from '../shared/fishAssets'
-import { Animator, EngineInfo, engine, Entity, GltfContainer, InputAction, inputSystem, Material,
-  MeshRenderer, Transform, VisibilityComponent } from '@dcl/sdk/ecs'
+import { Animator, AvatarAnchorPointType, AvatarAttach, EngineInfo, engine, Entity, GltfContainer, InputAction, inputSystem, Material,
+  MeshRenderer, PlayerIdentityData, Transform, VisibilityComponent } from '@dcl/sdk/ecs'
 import { Quaternion, Vector3 } from '@dcl/sdk/math'
 import { ARENA_MAX_PLAYER_Y, PLAYER_SKINS, SEA_Y, SPECIES } from '../shared/config'
 import { isShark } from '../shared/shark'
 import type { SharkTouch } from '../shared/messages'
 import { SharkMotion } from './sharkMotion'
-import { fishBodyScale, fishWaterHeight } from '../shared/fishGeometry'
+import { fishBodyScale, fishWaterHeight, riderSeatOffsetY } from '../shared/fishGeometry'
 import { fishInEatingContact } from '../shared/eating'
 import { NPC_SLOTS } from '../shared/npcs'
+import { areaAtPoint } from '../shared/areaBalance'
 import { ArenaSnapshot, FishState, FoodState, room } from '../shared/messages'
 import { createFishNumber, NPC_NUMBER_DISTANCE, NUMBER_UPDATE_INTERVAL, PlayerFishNumbers, updateFishNumber } from './fishNumbers'
 import { FishMount } from './fishMount'
@@ -26,16 +27,22 @@ const FOOD_MATERIAL = {
   albedoColor: { r: 101 / 255, g: 235 / 255, b: 53 / 255, a: 1 },
   castShadows: false, metallic: 0, roughness: 0.55, specularIntensity: 0.2, emissiveIntensity: 0
 }
+const REMOTE_RIDER_ATTACH_DISTANCE = 8
+const REMOTE_RIDER_DETACH_DISTANCE = 12
+// Unity Explorer places the position anchor 0.75 m below the avatar root.
+const AVATAR_POSITION_ANCHOR_LIFT = 0.75
 
 interface FishView {
   root: Entity; body: Entity; waveMotion?: FishWaveMotion; jump?: FishJump; sharkMotion?: SharkMotion; powerEffects?: FishPowerEffects; waterEffects?: FishWaterEffects; label?: Entity; rarityBadge?: NpcRarityBadge; scale: number; state: FishState
   authored: boolean; moving: boolean; animationSpeed: number; npcPlaying?: boolean
   attached: boolean; lastX: number; lastZ: number; movingUntil: number
+  riderAnchor?: { entity: Entity; lift?: number }
 }
 
 export class ArenaView {
   readonly fish = new Map<number, FishView>()
   private food = new Map<number, Entity>()
+  private foodPool: Entity[] = []
   private confirmedFood = new Map<number, number>()
   private confirmedFish = new Map<number, number>()
   private foodTargets: FoodState[] = []
@@ -53,10 +60,12 @@ export class ArenaView {
   private mount?: FishMount
   private mountedFish?: number
   private sharkId?: number
+  private populationLogged = false
 
   constructor(private contact: (pickup: LocalPickup) => void = () => {},
     private readonly localSplash?: (landing: boolean) => void) {
     FishPowerEffects.preload()
+    NpcRarityBadge.preload()
   }
 
   tutorialAvailable(kind: 'food' | 'fish', id: number): boolean {
@@ -102,12 +111,13 @@ export class ArenaView {
     return this.mountedFish === id && this.mount ? this.mount.waitForSeat(recheck) : Promise.resolve(false)
   }
 
-  mountLocalFish(id: number): Vector3 {
+  mountLocalFish(id: number, onReseated: () => void): Vector3 {
     this.prediction.clear()
     this.confirmedMass = 0
     const view = this.fish.get(id)
     if (!view || view.authored) throw new Error('Player fish is not ready.')
     this.mount?.dispose()
+    this.clearRiderAnchor(view)
     const t = Transform.getMutable(view.root)
     t.parent = engine.RootEntity
     t.position = Vector3.create(view.state.x, fishWaterHeight(view.state, view.scale), view.state.z)
@@ -116,7 +126,7 @@ export class ArenaView {
     this.mountedFish = id
     view.jump?.reset()
     this.mount = new FishMount(view.root, () => PLAYER_SKINS[view.state.skin].height * view.scale,
-      () => Math.max(0.9, view.scale * 0.7 + 0.1))
+      () => Math.max(0.9, view.scale * 0.7 + 0.1), onReseated, () => view.state.mass)
     return this.mount.position
   }
 
@@ -166,6 +176,16 @@ export class ArenaView {
   }
 
   apply(snapshot: ArenaSnapshot, keepFish?: number): void {
+    if (!this.populationLogged && snapshot.food.length > 0) {
+      this.populationLogged = true
+      console.log('[AREA SUPPLY]', JSON.stringify(Array.from({ length: 6 }, (_, area) => ({
+        area,
+        fish: [0, 1, 2].map(species => snapshot.fish.filter(f => !f.owner && f.species === species && areaAtPoint(f) === area).length),
+        food: snapshot.food.filter(f => areaAtPoint(f) === area).length,
+        shield: snapshot.powerups?.filter(p => p.kind === 0 && areaAtPoint(p) === area).length ?? 0,
+        speed: snapshot.powerups?.filter(p => p.kind === 1 && areaAtPoint(p) === area).length ?? 0
+      }))))
+    }
     for (const [id, tick] of this.confirmedFood) if (snapshot.tick >= tick) this.confirmedFood.delete(id)
     for (const [id, tick] of this.confirmedFish) if (snapshot.tick >= tick) this.confirmedFish.delete(id)
     const fishStates = snapshot.fish.filter(f => !this.confirmedFish.has(f.id))
@@ -187,6 +207,7 @@ export class ArenaView {
         } else {
           if (view.label !== undefined) engine.removeEntity(view.label)
           engine.removeEntity(view.body)
+          if (view.riderAnchor) engine.removeEntity(view.riderAnchor.entity)
           engine.removeEntity(view.root)
         }
         this.fish.delete(id)
@@ -205,14 +226,29 @@ export class ArenaView {
       }
     }
     for (const [id, entity] of this.food) {
-      if (!foodIds.has(id)) { engine.removeEntity(entity); this.food.delete(id) }
+      if (!foodIds.has(id)) {
+        VisibilityComponent.createOrReplace(entity, { visible: false })
+        this.foodPool.push(entity); this.food.delete(id)
+      }
     }
     for (const food of foodStates) {
       if (this.food.has(food.id)) continue
-      const entity = engine.addEntity()
-      Transform.create(entity, { position: Vector3.create(food.x, SEA_Y + 0.12, food.z), scale: Vector3.create(0.48, 0.48, 0.48) })
-      MeshRenderer.setSphere(entity)
-      Material.setPbrMaterial(entity, FOOD_MATERIAL)
+      const pooled = this.foodPool.pop()
+      const entity = pooled ?? engine.addEntity()
+      const size = areaAtPoint(food) === 1 ? 0.72 : 0.48
+      const position = Vector3.create(food.x, SEA_Y + size / 4, food.z)
+      const scale = Vector3.create(size, size, size)
+      if (pooled !== undefined) {
+        const transform = Transform.getMutable(entity)
+        transform.position = position
+        transform.scale = scale
+      }
+      else {
+        Transform.create(entity, { position, scale })
+        MeshRenderer.setSphere(entity)
+        Material.setPbrMaterial(entity, FOOD_MATERIAL)
+      }
+      VisibilityComponent.createOrReplace(entity, { visible: true })
       this.food.set(food.id, entity)
     }
   }
@@ -233,9 +269,22 @@ export class ArenaView {
     } else this.prediction.clear()
     const waveTime = Date.now() * 0.001
     const sceneVisible = !EngineInfo.getOrNull(engine.RootEntity)?.sceneHidden
+    const remotePlayers = new Map<string, { position: Vector3; rotation: Quaternion }>()
+    for (const [entity, identity, transform] of engine.getEntitiesWith(PlayerIdentityData, Transform)) {
+      if (entity !== engine.PlayerEntity) remotePlayers.set(identity.address.toLowerCase(), transform)
+    }
     this.powerBadges.beginFrame()
     for (const [id, view] of this.fish) {
       const boosting = id === myFishId ? !!localPower?.boosting : (view.state.boost ?? 0) > 0
+      const rider = view.state.owner && view.state.boardState === 2 && id !== myFishId && id !== this.mountedFish
+        ? remotePlayers.get(view.state.owner.toLowerCase()) : undefined
+      const remotePosition = rider?.position
+      // The avatar can return to shore before its fish's final snapshot arrives.
+      const range = view.riderAnchor?.lift === undefined ? REMOTE_RIDER_ATTACH_DISTANCE : REMOTE_RIDER_DETACH_DISTANCE
+      const riderPosition = remotePosition && remotePosition.y >= SEA_Y - 0.75 && remotePosition.y <= ARENA_MAX_PLAYER_Y
+        && Math.hypot(remotePosition.x - view.state.x, remotePosition.z - view.state.z) < range
+        ? remotePosition : undefined
+      if (!riderPosition) this.clearRiderAnchor(view)
       if (!view.authored) {
         view.scale += (fishBodyScale(view.state) - view.scale) * (1 - Math.exp(-dt * 4))
         const swimHeight = fishWaterHeight(view.state, view.scale)
@@ -254,9 +303,13 @@ export class ArenaView {
             view.attached = true
           } else if (Math.abs(t.position.y - (swimHeight - position.y)) > 0.001) t.position.y = swimHeight - position.y
         } else {
-          t.position.x += (view.state.x - t.position.x) * alpha
-          t.position.z += (view.state.z - t.position.z) * alpha
-          t.rotation = Quaternion.slerp(t.rotation, Quaternion.fromEulerDegrees(0, view.state.yaw * 180 / Math.PI, 0), alpha)
+          if (!riderPosition) {
+            t.position.x += (view.state.x - t.position.x) * alpha
+            t.position.z += (view.state.z - t.position.z) * alpha
+          }
+          const heading = riderPosition && rider && view.riderAnchor?.lift !== undefined
+            ? rider.rotation : Quaternion.fromEulerDegrees(0, view.state.yaw * 180 / Math.PI, 0)
+          t.rotation = Quaternion.slerp(t.rotation, heading, alpha)
         }
         if (!view.attached && Math.abs(t.position.y - swimHeight) > 0.001) t.position.y = swimHeight
         if (Math.abs(Transform.get(view.body).scale.y - view.scale) > 0.0001) {
@@ -303,9 +356,18 @@ export class ArenaView {
       if (view.waveMotion) {
         const ready = view.state.boardState === 2 && (localMount ? followPlayer && predictPickups && this.localRiderSeated : !view.attached)
         const moving = isShark(view.state) || view.moving
-        view.waveMotion.update(view.root, fishWaterHeight(view.state, view.scale), waveTime, dt,
-          moving, boosting, ready, (view.state.owner ? PLAYER_SKINS[view.state.skin].height : SPECIES[view.state.species].height) * view.scale,
+        const bodyHeight = (view.state.owner ? PLAYER_SKINS[view.state.skin].height : SPECIES[view.state.species].height) * view.scale
+        const tilt = view.waveMotion.update(view.root, fishWaterHeight(view.state, view.scale), waveTime, dt,
+          moving, boosting, ready, bodyHeight,
           localMount ? this.mount!.steering : 0, jumpHeight, view.jump?.velocity ?? 0, view.jump?.airborne ?? false)
+        if (riderPosition) {
+          const seatOffset = riderSeatOffsetY(bodyHeight)
+          // Wake and badge systems use the scene-space pose. The visible mesh follows the renderer.
+          const pose = Transform.getMutable(view.root)
+          const offset = Vector3.rotate(Vector3.create(0, seatOffset, 0), pose.rotation)
+          pose.position = Vector3.subtract(riderPosition, offset)
+          if (local) this.updateRiderAnchor(view, riderPosition, local, seatOffset, tilt)
+        }
       }
       if (view.waterEffects) {
         const height = view.state.owner ? PLAYER_SKINS[view.state.skin].height : SPECIES[view.state.species].height
@@ -337,6 +399,47 @@ export class ArenaView {
     }
     this.powerBadges.endFrame()
     this.playerNumbers.update(dt, playerStates, myMass)
+  }
+
+  private updateRiderAnchor(view: FishView, rider: Vector3, observer: Vector3, seatOffset: number, tilt: Quaternion): void {
+    if (!view.riderAnchor) {
+      const entity = engine.addEntity()
+      Transform.create(entity, { position: Vector3.create(0, -1024, 0) })
+      AvatarAttach.create(entity, { avatarId: view.state.owner, anchorPointId: AvatarAnchorPointType.AAPT_POSITION })
+      view.riderAnchor = { entity }
+    }
+    const anchor = view.riderAnchor
+    if (anchor.lift === undefined) {
+      // Wait for the renderer to resolve the attachment before moving the model to it.
+      const rendered = Vector3.add(observer, Transform.get(anchor.entity).position)
+      if (Math.hypot(rendered.x - rider.x, rendered.z - rider.z) > 2) return
+      const lift = rider.y - rendered.y
+      if (Math.abs(lift - AVATAR_POSITION_ANCHOR_LIFT) < 0.25) anchor.lift = AVATAR_POSITION_ANCHOR_LIFT
+      else if (Math.abs(lift) < 0.25) anchor.lift = 0
+      else return
+    }
+    const offset = Vector3.rotate(Vector3.create(0, -seatOffset, 0), tilt)
+    offset.y += anchor.lift
+    const current = Transform.get(view.body)
+    if (current.parent === anchor.entity && Vector3.distanceSquared(current.position, offset) < 0.000001
+      && Math.abs(current.rotation.x - tilt.x) < 0.0005 && Math.abs(current.rotation.y - tilt.y) < 0.0005
+      && Math.abs(current.rotation.z - tilt.z) < 0.0005 && Math.abs(current.rotation.w - tilt.w) < 0.0005) return
+    const body = Transform.getMutable(view.body)
+    body.parent = anchor.entity
+    body.position = offset
+    body.rotation = tilt
+  }
+
+  private clearRiderAnchor(view: FishView): void {
+    if (!view.riderAnchor) return
+    if (view.riderAnchor.lift !== undefined) {
+      const body = Transform.getMutable(view.body)
+      body.parent = view.root
+      body.position = Vector3.Zero()
+      body.rotation = Quaternion.Identity()
+    }
+    engine.removeEntity(view.riderAnchor.entity)
+    view.riderAnchor = undefined
   }
 
   private pickupVisibility(kind: number, id: number, visible: boolean): void {

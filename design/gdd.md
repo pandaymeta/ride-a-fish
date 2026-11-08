@@ -1,162 +1,220 @@
 # Ride A Fish
 
-**Game Design Document | Decentraland Creator Success**
+**Decentraland Creator Success Program**
 
-**Studio** Pandaymeta Studio
-
-**Contact** @Entenium on Discord · pandaymetastudioph@gmail.com
-
-**World** Entenium (entenium.dcl.eth) · **Date** 3 November 2026
+| | |
+|---|---|
+| Public experience title | Ride A Fish. IP & [Content Policy](https://decentraland.org/content/): owner declaration, TBD. Name screening: not searched. Title and permission checks: TBD. |
+| Deployment target | Entenium World (entenium.dcl.eth). |
+| Studio / team name | Pandaymeta Studio. |
+| Date | 8 November 2026 — local review draft. |
+| Contact (Discord + email) | @Entenium on Discord · pandaymetastudioph@gmail.com. |
 
 ## 0. TL;DR
 
 | | |
 |---|---|
-| Player promise | Ride a fish around a tropical island. Eat smaller fish, grow big enough to chase your rivals, and get back to the dock safely. |
-| Primary player | For players who like quick survival games and collecting creatures, whether they arrive alone or with friends. |
-| Current status | The Decentraland sample is open for public testing. Board, swim, grow, dodge the shark, and dock. The Fish Index has four collectible species. [Play the test scene](https://decentraland.org/jump?realm=entenium.dcl.eth) · [Project repository](https://github.com/pandaymeta/ride-a-fish) |
-| Requested round | V0, first Creator Success application. |
-| Proposed V0 | Playtest the first ride solo and with a rival. Check whether new players understand the chase and choose to ride again. |
+| **Player promise** | Ride a growing fish, chase smaller players, and dodge large predators. Grow until the fish chasing you become your prey. |
+| **Primary player** | For players who like short survival games and fish collecting, joining alone or with friends to grow and chase rivals. |
+| **Current status** | World republished on 8 November 2026 with the current scene changes (owner-reported). [Play in Entenium World](https://decentraland.org/jump?realm=entenium.dcl.eth). Public save/rejoin verification remains pending. [Repository](https://github.com/pandaymeta/ride-a-fish). |
+| **Requested round** | V0, first Creator Success application. |
+| **Live at end of the round** | V0: players can grow, chase smaller riders, and dodge predators in Common and Uncommon waters, park only at the island dock, and rejoin with saved size and Fish Index progress. |
 
 ## 1. Player Promise
 
-Ride a fish around a tropical island. Eat smaller fish, grow big enough to chase your rivals, and get back to the dock safely.
+**One-line promise.**
 
-This game is an upgraded version of "Little Fish," a 2D single player experience we published on The Sandbox Game platform. In Decentraland, we want you to feel like you are actually riding the fish. Your own avatar sits on the fish as it turns, jumps, and grows beneath you.
+Ride a growing fish, chase smaller players, and dodge large predators. Grow until the fish chasing you become your prey.
+
+**One familiar comparison.**
+
+A fish survival game where your own avatar rides the fish you control.
+
+**Why this game.**
+
+We made Little Fish as a 2D solo game on The Sandbox Game platform. We want players to ride with their own avatars and chase people they know.
 
 ## 2. First Minutes & How to Play
 
 | Time | Player experience |
 |---|---|
-| 0–5 seconds after control | You spawn on the island path. A movement hint appears and a red arrow points to the NPC Guide by the dock. |
-| 5–10 seconds | You walk towards the NPC Guide. Press E near NPC for a short welcome, and she will direct you to your fish. |
-| 10–60 seconds | Press E beside your fish to step aboard. Follow the white trail to green food, then to a fish you can eat. You see your fish grow. |
-| 1–3 minutes | You eat a smaller fish and discover it in the Index. A Speedbooster gives you a burst of speed. A Shield protects you from being eaten. |
-| 3–10 minutes | You choose whether to chase a rival, find another species, or head back before the shark catches you. |
-| Natural stopping point | You press E at the dock. Your fish parks at its current size, and you can check your discoveries or ride out again. |
+| **0–5 seconds after control** | The island path and red arrow lead to the NPC Guide and dock. |
+| **5–10 seconds** | You approach the dock to board your fish. |
+| **10–60 seconds** | You board, steer toward food, and see your fish grow. |
+| **1–3 minutes** | You catch an NPC fish, fill an Index entry, and park. |
+| **3–10 minutes** | Ride again, chase a player, or dodge the Hammerhead. Uncommon requires size 100. |
+| **Natural stopping point** | Return to the island dock to park and save. Your size and missing Index entries show the next goal. |
 
-**How to play**
+**Player-facing How to Play.**
 
-- Press E on fish to ride it.
-- Eat green food and smaller fish.
-- Escape bigger predators. Press E to dock.
-
-The NPC Guide's six-item checklist guides your first ride, food, fish, both power-ups in either order, and return to the dock. The arrows update as you play. The shark and other riders cannot eat you until you eat your first fish. You can dock early, and the movement and jump hints stop after the tutorial.
+- Board your fish and eat to grow.
+- Chase smaller players; dodge large predators.
+- Park to save your size.
 
 ## 3. Core Loop
 
-| Step | What you do and what happens | Why repeat it |
-|---|---|---|
-| 1. Board | Press E by your fish and step off the dock into the seat. A fresh fish starts at size 1. | A new run starts with small, easy targets. |
-| 2. Steer | Use WASD to turn and Space to jump. The fish rocks with the swell, banks on turns, and leaves a wake. | Learn when to turn, jump, or take a different route. |
-| 3. Eat | Swim into green food or strictly smaller fish. Your fish grows visibly. A new species fills a slot in the Index. | Every catch changes what you can hunt. |
-| 4. Escape | Break away from larger riders or the Hammerhead. Use a Shield or ride through a Speedbooster when you see one. | A rival can cut you off, give up the chase, or become your next target. |
-| 5. Dock | Press E near the dock to step onto the planks. Parked fish keep their size and cannot be eaten. If eaten at sea, you respawn on the island with a fresh run available. | Take a break from the chase, then get back on the same fish. |
+| # | Step (verb) | What the player does (Player input → what they see or hear → what changes) | Why do it again? |
+|---|---|---|---|
+| 1 | Board | Press E or tap Ride → mount your saved fish, or size 1 if new. | Continue your fish. |
+| 2 | Eat | Eat food or smaller fish → grow; new NPC species fill the Index. | Reach larger prey. |
+| 3 | Chase | Follow a smaller rider → they try to escape. | Each rival reacts differently. |
+| 4 | Dodge | Turn, jump, or take a powerup → try to escape a larger fish. | Keep your growing fish alive. |
+| 5 | Park | At the island dock, press E or tap Dock → step off and save size. | Continue on another visit. |
 
-**Session targets** First growth within one minute, first satisfying loop in about two to three minutes, typical visit five to ten minutes. We will time these in playtests. The arena runs continuously. On later rides, a rival's route or a fish you still need can change where you head next.
+Only strictly larger fish can eat smaller ones. Riding puts your saved fish at risk again; getting eaten means starting at size 1. Index entries, coins, and tutorial progress stay. Park before leaving to keep that size.
 
-**Pillars** A fish you can feel beneath you. Growth you can see. A hunt that changes when someone else joins.
+| | |
+|---|---|
+| **One complete loop takes** | Target: 2–3 minutes to catch and park; food rewards come earlier. |
+| **Decision, challenge, or expression** | Keep hunting at risk, or return to park and save. |
+| **Shortest satisfying visit / typical session** | Target: 2–3 / 5–10 minutes. First growth within one minute. |
+| **Why repetition 10 remains appealing** | Growth changes targets; rivals and predators change routes. |
 
-The sample has 60 green food pickups, five Blue Tangs (size 2), two Reef Angelfish (6), one Red Reef Fish (18), and one roaming Hammerhead (1,000). Food adds one size. Equal sizes cannot eat each other. The three smaller species stay in place until eaten. The Hammerhead chases smaller riders and flees larger ones.
+Timing and repeat-play appeal still need player tests.
+
+**Pillars.**
+
+1. Ride with your avatar — steer, jump, and visibly grow.
+2. Chase and dodge — turn a hunter into prey.
+3. Park and continue — keep your fish between visits.
 
 ## 4. Why Players Come Back
 
-**4.1 Next day** Before leaving, a player spots a missing fish in the Index and checks the island schedule. If the next window is tomorrow at 13:00 UTC, they have a time to come back and can invite a friend to race for it.
+### 4.1 The next-day (D1) sentence
 
-**4.2 Progression** Eat a new species → save the discovery → pick a harder target → learn a better route or bring a friend to help find it.
+> We want players to return to continue their saved fish and catch missing Fish Index species.
 
-| When | What lasts and what you can do next | What others see |
-|---|---|---|
-| First visit | The Index keeps your first discoveries after defeat. Pick a missing fish for your next ride. | Your name and current fish size in the arena. |
-| First week | Plan a harder catch with what you have learned, or try to beat your best size. | The planned island board shows the best sizes across servers. |
-| Week three onward | Planned fish windows and monthly events give collectors new targets. | Riders can meet for the same spawn and recognize familiar rivals. |
+### 4.2 The progression chain
 
-You open the Index and see which fish you still need. A rider you remember from yesterday is heading out, so you try a different route to beat them to the next catch. You can lose the chase and still keep a discovery.
+> Eat and grow → park size and record discoveries → reach larger prey and Uncommon water → choose the next hunt.
 
-Coins come from food and fish pickups. The sample saves your balance.
+| Moment | What persists or has been built? | What becomes possible next? | How can another player tell? |
+|---|---|---|---|
+| **End of first session** | Saved size, discoveries, coins, and tutorial progress. | Grow or find a missing species. | Your name and size are visible. |
+| **End of first week** | Target: growth and discoveries; pace TBD. | Enter Uncommon; challenge a rival. | Rivals see your larger fish. |
+| **Week 3+ — what takes more than two weeks?** | V1: deeper areas and collection; timing TBD. | Hunt missing high-tier species. | Visible size; collection display TBD. |
 
-**4.3 Reasons to return**
+**Intended first-week scene.**
 
-| Hook | Trigger | Why come back and how you know |
-|---|---|---|
-| Timed fish discoveries | The planned island schedule shows the next daily window for a featured fish. The Index saves each species on its first catch. | Check which fish you still need and plan your next visit around its spawn. A shared countdown gives friends a time to meet. |
-| Beat your best | The planned island leaderboard will rank players by their best fish size across runs. | Come back to beat your record and try to earn a place in the global top 20. |
+You return to your saved fish, catch a missing species, and escape a rival. Parking keeps your new size.
+
+**Currency or tradable rewards.** Coins remain a saved reward. V0 focuses on growth and discoveries. V1 adds a shop where players can spend their coins. Items and prices are TBD.
+
+### 4.3 Two return hooks
+
+| Selected hook | Exact trigger or timing | What the player anticipates | Reminder channel + no-reminder fallback |
+|---|---|---|---|
+| **1. Saved-growth progression** | Park before leaving; rejoin at the saved size. | Grow toward size 100 and Uncommon water. | Saved size and the next gate show the goal. |
+| **2. Fish Index collection** | Catch a new NPC species to fill its entry. | Find a missing fish on the next ride. | The Index shows discoveries and empty entries. |
+
+Return results are TBD. Scheduled species spawns belong to V1.
 
 ## 5. Social by Design
 
 | | |
 |---|---|
-| Repeatable social loop | You race another rider to a fish. They can cut you off, chase you, or turn away. Whoever eats first grows, and the chase can reverse on the next pass. |
-| If others leave | Solo players can ride, collect fish, and evade the Hammerhead. Human pursuit, contested catches, and rematches depend on other riders. |
-| Meeting players | The shared dock puts arrivals in one place. Names above riders make it easy to recognize a rival without using chat. |
-| Recognition across visits | You remember who chased you and how they moved. Seeing that rider again can change your route or give you a reason to challenge them. |
-| Player counts | Two riders are enough for a chase. The verified maximum is 10 riders. |
-| Drop in and out | Players board when a dock spot is available. The arena keeps running as riders join, dock, or leave. Test full dock slots and disconnects with the first group. |
-| Visible play | From the dock you can see a named rider grow, turn, and chase the fish that was just chasing them. |
-| Shareable moment | A tiny rider jumps out of the Hammerhead's path and lands in a white splash. |
-| Bring a friend | Invite a friend back to race for the same rare catch or settle a close chase. |
+| **The repeatable social loop** | A rider chases a smaller player → the target turns, jumps, or takes a powerup → escape or catch → ride again. |
+| **The disappearance test** | Chases disappear; NPC hunting, growth, predator escapes, and the Index remain. |
+| **From strangers to a group** | Names and sizes show whom to chase or avoid. |
+| **Recognition & continuity** | Names and sizes support rivalry; test recognition on return visits. |
+| **Quiet hours & player counts** | Solo: NPC targets. Social threshold: 2. V0 tests: 2–4. Current cap: 10; V1: 20. Friend playtests reported; structured results: TBD. |
+| **Drop-in / drop-out** | Board at a free dock slot; departures do not stop others. |
+| **Visible play (the bystander test)** | A rider visibly eats, grows, and chases another fish. |
+| **Shareable play (the memorable moment)** | Escape a larger friend, grow, then chase them back. |
+| **Bring-a-friend** | Chase a friend; compare your fish after parking. |
 
-### Planned leaderboards
-
-- **Live server leaderboard.** A small HUD panel in the top-right corner shows the three largest fish being ridden on your server, with each rider’s name and current fish size. Your own row sits beside the top three and shows your name, size, and rank, even when you are outside the top three. The board updates as riders grow, board, dock, or leave.
-- **Global leaderboard.** A billboard on the island shows the top 20 players across servers, with their rank, name, and best fish size. Each player has one entry. Their best size stays on record after they leave, giving them a score to beat on their next visit.
+**V1 idea introduced in V0.** A Mythic spawn alerts the whole server and invites riders to race for the same fish. The first valid catch wins. We want this shared goal to create urgent hunts and rivalries. V0 presents the idea; V1 builds and tests the mechanic.
 
 ## 6. Mobile-First
 
-The sample uses desktop controls. This is the touch plan to test on the Decentraland mobile client.
+**Every core-loop verb on touch.**
 
-| Core verb | Planned touch control |
+| Core-loop verb | How it works with touch controls |
 |---|---|
-| Board | Tap a large Ride prompt by your fish. |
-| Steer | Use a thumbstick to swim, drag to look, and tap Jump. |
-| Eat | Swim into the pickup or smaller fish. |
-| Escape | Turn with the stick or tap Jump. Speed and Shield activate on contact. |
-| Dock | Tap Dock when close to the planks. Tap the book to check your Index. |
+| Board | Tap Ride beside the fish. |
+| Eat | Steer into food or smaller fish. |
+| Chase | Use the thumbstick; drag to look. |
+| Dodge | Turn or tap Jump; collect powerups on contact. |
+| Park | Tap Dock near the bridge. |
 
-Keep action prompts in thumb reach and leave the rider clear of overlays. Test boarding, seating, camera, and docking on touch before adding more content. Targets are 60 fps on recommended desktop hardware and 30 fps on Android at the target player count. The Android device, client build, and measured performance are TBD.
+**UI plan.**
+
+Keep sizes, prompts, and the Index readable on phones. Show nearby prompts when useful.
+
+**Performance.**
+
+V0 targets: 60 fps desktop / 30 fps mobile at 2–4 riders. Mobile device, client, and results: TBD. V1 tests 20 riders.
+
+**Desktop-only dependencies.**
+
+Touch seating, steering, jumping, and docking need device tests. Check the [mobile feature-gap tracker](https://github.com/decentraland/godot-explorer/issues/2402); keyboard play alone does not establish mobile readiness.
 
 ## 7. World, Look & Story
 
-The NPC Guide welcomes you on a small tropical island with a wooden dock. The sea around it is the arena, and the dock gives you a safe place to stop and watch.
+**Story / world.**
 
-Use bright fish against blue water, clear size numbers, and a parchment Fish Index. The scene's signature is a visible avatar riding a growing fish, banking over the swell with a white wake behind it.
+The NPC Guide welcomes riders to a tropical island and dock. At sea, you hunt smaller fish and escape larger ones.
+
+**Visual direction.**
+
+An avatar rides a bright, growing fish over blue water with a white wake. Clear sizes, bold prompts, and a parchment Index support phone readability. Keep the island and bridge.
 
 ## 8. Audience & Comparables
 
-For players who like quick survival games and collecting creatures, whether they arrive alone or with friends.
+**Primary player + arrival context.**
 
-We plan to invite the first group through our existing contacts and share one World link and playtest time. The game should also work for players who find it on their own.
+For players who like short survival games and fish collecting, joining alone or with friends to grow and chase rivals.
 
-**Audience boundary** The focus is short, active arena sessions and fish collecting.
+**How the first group arrives.**
 
-| Reference | What we take from it | What we change |
+Invite our contacts with a World link and playtest time. Bring 2–4 riders into the same server.
+
+**Deliberately not for.**
+
+Players seeking a long solo story or equal-size PvP matches.
+
+### Comparables
+
+| | Comparable A — Decentraland: Fishing Game reference, exact link TBD | Comparable B — outside Decentraland: Little Fish, The Sandbox Game |
 |---|---|---|
-| Little Fish, The Sandbox Game | In our 2D single-player game, you control the fish from inside it. It swims around the map, eats NPC fish, and grows with each catch. | In Decentraland, your avatar rides on top of the fish. You can compete with other riders and park safely at the dock. |
-| Fishing Game, Decentraland | In our reference view, the shore and dock show where the player starts, and the guide uses a parchment panel. | Use the dock to board a moving fish and the book to track what you eat. |
+| What we observed works | Clear dock and dialogue in the image; gameplay unverified. | Our solo game uses eating and growth. |
+| What does not fit our audience or context—and why | Mounted player chases are unverified. | It has no avatar riding or shared player chase. |
+| What we will do differently | Make the ride and chase visible. | Add avatar riding, player chases, and parked-size saving. |
 
-## 9. Four Week Plan
+## 9. 4 Week Plan (v1 scope)
 
-**Application sample** The public test scene shows the ride, eat, grow, escape, and dock loop. V0 scope is subject to agreement with Creator Success. [Play Ride A Fish](https://decentraland.org/jump?realm=entenium.dcl.eth)
+**Proposed V0 scope:** the existing island, Common and Uncommon waters, a small Fish Index, the Hammerhead, Shields, and Speedboosters. Deliver ride → grow → chase or dodge → park at the island dock → rejoin. Agree the final scope and timeline with Creator Success.
 
-**Proposed V0 playtest** In the published World, ask fresh players to join with no coaching. Aim for at least 80% to take a useful action within five seconds and explain their immediate goal within ten. Watch whether they find the dock, board, and see their fish grow within one minute. Run a solo session and a two-player session. Check whether riders read the size numbers, know when to chase or flee, and choose another ride after docking or defeat. Use what we learn to tune onboarding and the first chase.
+The Hammerhead roams only in Common and Uncommon waters.
 
-The V0 playtest focuses on the first ride. The fish skin shop, leaderboards, and seasonal fish are planned for later.
+With 2–4 riders, test boarding and prey/predator clarity, voluntary repeat rides, and save/rejoin. Results are TBD.
 
-**Proposed V1 plan after V0**
+**Provisional V1 outlook, after V0 review:** the main new social test is the shared Mythic hunt. When a Mythic fish spawns, every player in the server gets an alert. Its location stays hidden. Riders race to find it, chase rivals, and dodge threats; the first valid catch wins. The aim is to turn separate hunts into an exciting shared race.
 
-| Week | What we will build or check |
+V1 will build Mythic spawning, the server-wide alert, and a single confirmed winner per fish. Test whether players change routes to join the hunt and choose another ride afterward. Excitement and repeat play are goals to verify.
+
+V1 also includes a coin shop, six populated rarity areas, a nearly complete Fish Index, 20 players, UTC species rotations, and friend-based Legendary/Mythic spawn bonuses. Shop items, prices, species count, and tuning: TBD. Size gates and catch-size rules still apply. Details: [Progression appendix](gdd-progression-appendix.md).
+
+| Week | What is playable / done |
 |---|---|
-| 1 | Fix the onboarding issues found in V0 and test touch boarding early. |
-| 2 | Run a group test with four players. Check contested catches, shark contact, voluntary retries, full slots, docking, and rejoining. |
-| 3 | Tune starter food, protection, and chase balance. If the core loop is stable, test the shared countdown and timed rare fish. |
-| 4 | Test mobile controls and frame rate, verify saved discoveries, and prepare the V1 update. Track first-week returns after release. |
+| 1 — Prototype definition | Confirm the V1 roster, growth plan, and shop items/prices; resolve V0 playtest issues. |
+| 2 — Core interaction + first-group test | Populate all six areas; test fish mix and gates. Prototype a Mythic spawn and server-wide alert. |
+| 3 — Core systems refinement | Test shared Mythic hunts and one winner per fish. Add the coin shop; complete most species, rotations, friend bonuses, and 20-player capacity. |
+| 4 — Playable release, including testing and deployment | Observe hunt participation, chases, and repeat rides. Check purchases, saves, collection, and 20-player desktop/mobile performance; publish V1. |
 
-**Planned content after launch**
+**What keeps the experience changing after launch.**
 
-- **Fish collection.** Add timed and seasonal species to the Index. A planned shared countdown shows the next guaranteed Mythic (every 30 minutes) and Secret (every hour), on UTC boundaries.
-- **Fish skin shop.** Let players spend earned coins on skins for their rides.
-- **Leaderboards.** Add the live server top three and the island’s global top 20 billboard. Playtest whether players understand both rankings and come back to improve their best size.
+- Different rivals and fish sizes change the next chase.
+- NPC respawns support solo hunts; V1 Mythic spawns start shared races.
+- Parked size and discoveries carry across visits; catching an active rider still ends that fish.
+- If players stop returning, review chase balance, growth pace, and missing-species goals.
 
-**Top risk and fallback** If first-time players get stuck at the dock, shorten the guidance and test one clear Ride action before expanding the tutorial. If touch seating is unreliable, prioritize a reliable board-and-dock transition before adding optional motion effects.
+**Not building in v1.**
 
-**Open submission items** Confirm rights for reused assets and screen the public title. Record the required Featured-game visits and lessons in the application, and confirm reviewer access to the repository. [Creator Success onboarding](https://docs.decentraland.org/creator/studio-onboarding)
+1. Areas beyond the six rarity areas.
+2. Leaderboards.
+3. Rebirth, trading, and formal crews.
+
+**Top risk + fallback.**
+
+An unreliable save can erase a large fish. Prioritize save/rejoin fixes and preserve stored data after failed loads. New-player fairness, mobile riding, and return visits need tests.

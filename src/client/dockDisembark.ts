@@ -4,6 +4,7 @@ import { Vector3 } from '@dcl/sdk/math'
 import { nearestDockLanding } from '../shared/dockSurfaces'
 import type { FishState } from '../shared/messages'
 import { ArenaView } from './view'
+import { getPlatform, isMobile } from '@dcl/sdk/platform'
 
 // A single local prompt; no added dock geometry or network position stream.
 export class DockDisembark {
@@ -11,6 +12,8 @@ export class DockDisembark {
   private active = false
   private clock = 1
   private eligible = false
+  get canDock(): boolean { return this.eligible }
+  get promptPosition(): Vector3 | undefined { return Transform.getOrNull(this.prompt)?.position }
 
   constructor(private view: ArenaView, private request: () => void) {
     this.prompt = engine.addEntity()
@@ -31,7 +34,8 @@ export class DockDisembark {
         if (this.active) {
           MeshCollider.setSphere(this.prompt, 1)
           pointerEventsSystem.onProximityDown({ entity: this.prompt, opts: {
-            button: InputAction.IA_PRIMARY, hoverText: 'Dock', maxDistance: 6, showHighlight: false
+            button: InputAction.IA_PRIMARY, hoverText: 'Dock', maxDistance: 6, showHighlight: false,
+            showFeedback: getPlatform() === null || isMobile()
           } }, () => { if (this.eligible) this.request() })
         } else {
           pointerEventsSystem.removeOnProximityDown(this.prompt)

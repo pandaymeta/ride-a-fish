@@ -1,5 +1,6 @@
 import { FishState, FoodState } from '../shared/messages'
 import { distanceSquared, fishEatRadius, foodEatRadius } from '../shared/eating'
+import { foodGrowthAt } from '../shared/areaBalance'
 
 export interface LocalPickup {
   kind: number; target: number; species: number; x: number; z: number; value: number
@@ -28,7 +29,7 @@ export class PickupPrediction {
     for (const food of foods) {
       if (this.consider(0, this.food, food.id, mass, foodRadius,
         distanceSquared(position.x, position.z, food.x, food.z))) {
-        this.contact({ kind: 0, target: food.id, species: -1, x: food.x, z: food.z, value: 1 })
+        this.contact({ kind: 0, target: food.id, species: -1, x: food.x, z: food.z, value: foodGrowthAt(food) })
       }
     }
     for (const prey of fish) {

@@ -1988,8 +1988,8 @@
   },
   "creator": "0xaef7cDf5C0cE911E3491213A71bfC96cb28D5148",
   "skyboxConfig": {
-    "fixedTime": 43200,
-    "transitionMode": 0
+    "transitionMode": 0,
+    "fixedTime": 57600
   },
   "landscapeTerrain": false,
   "source": {

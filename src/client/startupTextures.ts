@@ -11,6 +11,7 @@ export const INDEX_SILHOUETTES = 'assets/Images/ui/book/fish-silhouettes-uniform
 export const GUIDE_FRAME = 'assets/Images/ui/rean/dialogue-angular.png'
 export const GUIDE_NAMEPLATE = 'assets/Images/ui/rean/nameplate-angular.png'
 export const GUIDE_BUTTON = 'assets/Images/ui/rean/button-angular.png'
+export const QUEST_FRAME = 'assets/Images/ui/rean/quest-parchment.png'
 export const BOOST_TEXTURE = 'assets/Images/KOFTE/Fish_05-boost.jpg'
 export const FOOTPRINT_TEXTURE = 'assets/Images/sand-footprint.png'
 export const SWIM_RIPPLES_TEXTURE = 'assets/Images/reference-swim-ripples.png'
@@ -19,7 +20,7 @@ export const SWIM_SPRAY_TEXTURE = 'assets/Images/reference-swim-spray.png'
 const firstUseTextures = [COIN_TEXTURE, INDEX_ICON, FOOTPRINT_TEXTURE, SWIM_RIPPLES_TEXTURE, SWIM_SPRAY_TEXTURE]
 const textures = [
   ...firstUseTextures, INDEX_BOOK, INDEX_TILE, INDEX_SILHOUETTES,
-  GUIDE_FRAME, GUIDE_NAMEPLATE, GUIDE_BUTTON, BOOST_TEXTURE, ...POWERUP_ICONS,
+  GUIDE_FRAME, GUIDE_NAMEPLATE, GUIDE_BUTTON, QUEST_FRAME, BOOST_TEXTURE, ...POWERUP_ICONS,
   'assets/Images/ui/book/stat-hook.png', 'assets/Images/ui/book/stat-ruler.png',
   'assets/Images/ui/book/stat-coin.png', 'assets/Images/ui/book/stat-clock.png',
   ...['07', '17', '06', '20'].map(id => 'assets/Images/ui/book/fish-' + id + '-uniform.png')

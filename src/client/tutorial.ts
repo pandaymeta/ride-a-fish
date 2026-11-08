@@ -2,6 +2,7 @@ import type { Vector3 } from '@dcl/sdk/math'
 import type { ArenaSnapshot, FishState } from '../shared/messages'
 import type { TutorialTarget } from '../shared/tutorialTargets'
 import { TutorialGuidance } from './tutorialGuidance'
+import { DialogueCamera } from './dialogueCamera'
 import { Animator, engine, Entity, getWorldPosition, InputAction, inputSystem, PointerEventType,
   pointerEventsSystem, Transform } from '@dcl/sdk/ecs'
 import { room, PlayerProfile } from '../shared/messages'
@@ -10,11 +11,13 @@ import { GUIDE_DEFEAT_LINES, GUIDE_INTERACTION_NAME, GUIDE_LINES, GUIDE_NAME, GU
   TUTORIAL_LESSONS, readTutorial, tutorialDialogue, tutorialFishArrow } from '../shared/tutorial'
 import { state } from '../ui/TutorialHud'
 import { actions } from './state'
+import { getPlatform, isMobile } from '@dcl/sdk/platform'
 
 type DefeatKind = keyof typeof GUIDE_DEFEAT_LINES
 
 export class TutorialClient {
   private readonly guidance: TutorialGuidance
+  private readonly dialogueCamera = new DialogueCamera()
   private openedAt = -100
   private readonly guide: Entity | null
   private readonly clicker: Entity | null
@@ -36,6 +39,12 @@ export class TutorialClient {
   private paintedSteps = -1
   get busy(): boolean { return state.dialogueVisible || this.clock - this.requestedAt < 3 }
   get interacting(): boolean { return this.listening || this.busy }
+  get canTalk(): boolean { return this.listening }
+  get talkPosition(): Vector3 | undefined {
+    if (this.guide === null) return
+    const position = getWorldPosition(engine, this.guide)
+    return { x: position.x, y: position.y + 1.2, z: position.z }
+  }
 
   constructor() {
     this.guide = engine.getEntityOrNullByName(GUIDE_NAME)
@@ -67,9 +76,17 @@ export class TutorialClient {
     this.pendingDefeat = cause
   }
 
+  cancel(): void {
+    this.requestedAt = -100
+    this.closeSpeech()
+    this.setInteraction(false)
+  }
+
   update(dt: number, available: boolean, obscured: boolean): void {
     this.clock += dt; this.sampleClock += dt
+    this.dialogueCamera.update(dt)
     this.available = available; this.obscured = obscured
+    if (state.dialogueVisible && (!available || obscured)) this.closeSpeech()
     if (this.animationUntil > 0 && this.clock >= this.animationUntil) { this.animationUntil = 0; this.play('Idle') }
     if (this.acknowledging !== undefined && this.clock - this.ackAt >= 1 && available && this.nearby) {
       this.ackAt = this.clock
@@ -80,9 +97,7 @@ export class TutorialClient {
       const player = Transform.getOrNull(engine.PlayerEntity)?.position, guide = this.guide === null ? undefined : getWorldPosition(engine, this.guide)
       this.nearby = !!player && !!guide && Math.hypot(player.x - guide.x, player.z - guide.z) <= GUIDE_RANGE
         && Math.abs(player.y - guide.y) <= 2
-      if (state.dialogueVisible && (!available || obscured || (typeof this.speechKind === 'number' && !this.nearby))) {
-        state.dialogueVisible = false; this.speechKind = undefined
-      }
+      if (state.dialogueVisible && typeof this.speechKind === 'number' && !this.nearby) this.closeSpeech()
       if (this.pendingDefeat && available && !obscured && player && onPlatform(player)) {
         this.openSpeech(this.pendingDefeat)
         this.pendingDefeat = undefined
@@ -107,7 +122,7 @@ export class TutorialClient {
   navigate(dt: number, snapshot: ArenaSnapshot, mine: FishState | undefined, position: Vector3 | undefined,
     riding: boolean, available: (kind: TutorialTarget['kind'], id: number) => boolean): void {
     this.guidance.update(dt, this.profile, snapshot, mine, position, riding,
-      this.obscured || state.dialogueVisible, available)
+      this.obscured || state.dialogueVisible || this.acknowledging !== undefined, available)
   }
 
   private request(): void {
@@ -126,8 +141,7 @@ export class TutorialClient {
       this.acknowledging = this.speechKind; this.ackAt = this.clock
       void room.send('guideAcknowledge', { kind: this.speechKind })
     }
-    state.dialogueVisible = false; this.speechKind = undefined
-    this.paint()
+    this.closeSpeech()
   }
 
   private openSpeech(kind: number | DefeatKind): void {
@@ -138,7 +152,15 @@ export class TutorialClient {
     state.dialogueVisible = true
     state.questVisible = false
     this.setInteraction(false)
+    if (typeof kind === 'number' && this.guide !== null) this.dialogueCamera.focus(this.guide)
+    else this.dialogueCamera.release()
     this.paintSpeech()
+  }
+
+  private closeSpeech(): void {
+    state.dialogueVisible = false; this.speechKind = undefined
+    this.dialogueCamera.release()
+    this.paint()
   }
 
   private paintSpeech(): void {
@@ -153,7 +175,8 @@ export class TutorialClient {
     this.listening = enabled
     if (enabled) {
       pointerEventsSystem.onProximityDown({ entity: this.clicker, opts: { button: InputAction.IA_PRIMARY,
-        hoverText: 'Talk', maxDistance: GUIDE_RANGE, showHighlight: false } }, () => this.request())
+        hoverText: 'Talk', maxDistance: GUIDE_RANGE, showHighlight: false,
+        showFeedback: getPlatform() === null || isMobile() } }, () => this.request())
     } else {
       pointerEventsSystem.removeOnProximityDown(this.clicker)
     }

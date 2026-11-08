@@ -5,6 +5,7 @@ import { BOARDING_ARROW, BOARDING_RANGE, BOARDING_SPOT_NAMES, withinBoardingRang
 import type { FishState } from '../shared/messages'
 import { state } from '../ui/RideHud'
 import { ArenaView } from './view'
+import { getPlatform, isMobile } from '@dcl/sdk/platform'
 
 // These guide entities are local-only. Slot ownership comes from the server, never a client race.
 export class DockBoarding {
@@ -14,6 +15,8 @@ export class DockBoarding {
   private shown = -1
   private interacting = false
   private clock = 0
+  get canRide(): boolean { return this.interacting }
+  get promptPosition(): Vector3 | undefined { return Transform.getOrNull(this.prompt)?.position }
 
   constructor(private view: ArenaView, private request: () => void) {
     for (const name of BOARDING_SPOT_NAMES) {
@@ -50,7 +53,7 @@ export class DockBoarding {
       Transform.getMutable(this.rings[show]).rotation = Quaternion.fromEulerDegrees(0, this.clock * 28, 0)
       const p = Transform.get(fish.root).position
       Transform.getMutable(this.arrow).position = Vector3.create(p.x, p.y + 2.35, p.z)
-      Transform.getMutable(this.prompt).position = Vector3.create(p.x, p.y + 0.8, p.z)
+      Transform.getMutable(this.prompt).position = Vector3.create(p.x, p.y + .8, p.z)
     }
     const player = Transform.getOrNull(engine.PlayerEntity)?.position
     const interact = show >= 0 && phase === 'lobby' && mine?.boardState === 0 && available && !pending && state.indexDisplay !== 'flex'
@@ -60,7 +63,8 @@ export class DockBoarding {
       if (interact) {
         MeshCollider.setSphere(this.prompt, 1)
         pointerEventsSystem.onProximityDown({ entity: this.prompt,
-          opts: { button: InputAction.IA_PRIMARY, hoverText: 'Ride', maxDistance: BOARDING_RANGE, showHighlight: false } },
+          opts: { button: InputAction.IA_PRIMARY, hoverText: 'Ride', maxDistance: BOARDING_RANGE, showHighlight: false,
+            showFeedback: getPlatform() === null || isMobile() } },
           () => { if (this.interacting) this.request() })
       } else {
         pointerEventsSystem.removeOnProximityDown(this.prompt)

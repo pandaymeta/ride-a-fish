@@ -1,5 +1,4 @@
 import { MovementHints } from './movementHints'
-import { TUTORIAL_COMPLETE } from '../shared/tutorial'
 import { TutorialClient } from './tutorial'
 import { BOARDING_SPOTS } from '../shared/boarding'
 import { DockDisembark } from './dockDisembark'
@@ -22,10 +21,12 @@ import { IslandAudio } from './islandAudio'
 import { setupIndex, updateIndexProfile } from './indexPanel'
 import { SandFootprints } from './sandFootprints'
 import { StoolSeating } from './stoolSeating'
+import { OceanBoundarySigns } from './oceanBoundarySigns'
 
 export function startClient(localPreview = false): void {
   setupIndex()
   setupUi()
+  const boundarySigns = new OceanBoundarySigns()
   const pickups = new PickupEffects()
   const powerups = new PowerupClient()
   const eatenSound = new EatenSound()
@@ -68,6 +69,7 @@ export function startClient(localPreview = false): void {
   }
   actions.toggleIndex = () => { if (tutorial.busy) return; state.indexDisplay = state.indexDisplay === 'flex' ? 'none' : 'flex' }
   actions.returnToLobby = () => {
+    tutorial.cancel()
     stools.cancel()
     if (form.phase === 'fish' && form.fishId !== undefined) {
       pendingReturn = form.fishId
@@ -140,6 +142,7 @@ export function startClient(localPreview = false): void {
     } else if (mine.boardState === 0 && dockedFish === mine.id) {
       dockedFish = undefined; dockPending = false
     } else if (mine.boardState === 1 && form.phase === 'lobby' && failedBoarding !== mine.id) {
+      tutorial.cancel()
       entering = false
       state.indexDisplay = 'none'
       void form.transform(mine.id).then(ok => {
@@ -217,16 +220,21 @@ export function startClient(localPreview = false): void {
     tutorial.update(dt, canInteract && form.phase === 'lobby' && !entering && !dockPending && !stools.busy, state.indexDisplay === 'flex')
     powerups.updateControl(dt, mine, riding, alive, state.indexDisplay === 'flex')
     view.update(dt, mine?.mass ?? 1, mine?.id, riding, riding && alive && !dockPending, powerups.controls)
+    form.updateRiderPose()
     const fishPosition = view.localFishPosition
     const airborne = view.localFishAirborne
     const activeRider = riding && alive && !dockPending && view.localRiderSeated
+    boundarySigns.update(dt, riding && alive && fishPosition ? fishPosition : playerPosition,
+      !canInteract || tutorial.busy || stools.busy || state.indexDisplay === 'flex')
     islandAudio.update(dt, playerPosition, activeRider ? fishPosition : undefined, airborne, powerups.controls.boosting, tutorial.busy)
-    movementHints.update(canInteract && profile?.tutorialSteps !== TUTORIAL_COMPLETE, form.phase, riding, view.localRiderSeated && !view.awaitingMovementRelease,
-      tutorial.busy || stools.busy || entering || dockPending || state.indexDisplay === 'flex', playerPosition, fishPosition, airborne)
     tutorial.navigate(dt, snapshot, mine, fishPosition, riding && alive,
       (kind, id) => kind === 'food' || kind === 'fish' ? view.tutorialAvailable(kind, id) : powerups.tutorialAvailable(id))
     dock.update(dt, mine, form.phase, form.readyToRide, canInteract, entering || dockPending || tutorial.interacting, queuePosition, tutorial.fishArrowUnlocked)
     dockExit.update(dt, mine, riding && alive && state.indexDisplay !== 'flex', dockPending)
+    const interaction = tutorial.canTalk ? 'Talk' : dock.canRide ? 'Ride' : dockExit.canDock ? 'Dock' : ''
+    const interactionPosition = tutorial.canTalk ? tutorial.talkPosition : dock.canRide ? dock.promptPosition : dockExit.promptPosition
+    movementHints.update(canInteract, form.phase, riding, view.localRiderSeated && !view.awaitingMovementRelease,
+      tutorial.busy || stools.busy || entering || dockPending || state.indexDisplay === 'flex', playerPosition, fishPosition, airborne, interaction, interactionPosition)
     sharkContactClock += dt
     if (riding && alive && sharkContactClock >= 0.05) {
       const touching = view.localSharkContact(mine?.id)

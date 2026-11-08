@@ -64,6 +64,7 @@ export interface FoodState { id: number; x: number; z: number }
 export interface ArenaSnapshot { tick: number; fish: FishState[]; food: FoodState[]; powerups?: PowerupState[] }
 export interface Progress {
   version: number; tutorial?: TutorialProgress; counts: number[]; largest: number[]; best: number; cash?: number; food?: number
+  parkedMass?: number
 }
 export interface PlayerProfile {
   tutorialSteps: number; tutorialDialogues: number

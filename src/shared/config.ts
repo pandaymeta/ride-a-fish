@@ -3,12 +3,13 @@ import { FISH_JUMP_HEIGHT } from './fishJump'
 import { FISH_MODELS } from './fishAssets'
 import { insideLobbyIsland, lobbySurfaceY } from './lobbyIsland'
 import { SHARK_RULES } from './shark'
+import { AREA_FOOD_COUNTS } from './areaBalance'
 
 export const WORLD_NAME = 'entenium.dcl.eth'
 export const MAX_RIDERS = 10
 export const SPEED = 5
 export const ENTRY_SHIELD = 10
-export const FOOD_COUNT = 60
+export const FOOD_COUNT = AREA_FOOD_COUNTS.reduce((sum, count) => sum + count, 0)
 // Visible waterline; bodies sit a quarter of their height below this surface.
 export const SEA_Y = 7.05
 export const OCEAN_FLOOR_Y = 0.35
@@ -31,12 +32,12 @@ export const PLAYER_SKINS = [
 
 // Keep collection indices stable so existing saved discoveries remain valid.
 export const SPECIES = [
-  { id: 'lime-fish', name: 'Blue Tang', rarity: 'Common', mass: 2, population: 5,
+  { id: 'lime-fish', name: 'Blue Tang', rarity: 'Common', mass: 2, population: 19,
     ...FISH_MODELS.common, hint: 'Reach size 3 to collect a Blue Tang.' },
-  { id: 'pufferfish', name: 'Reef Angelfish', rarity: 'Uncommon', mass: 6, population: 2,
-    ...FISH_MODELS.uncommon, hint: 'Reach size 7 to collect a Reef Angelfish.' },
-  { id: 'bigeye-tuna', name: 'Red Reef Fish', rarity: 'Rare', mass: 18, population: 1,
-    ...FISH_MODELS.rare, hint: 'Reach size 19 to collect a Red Reef Fish.' },
+  { id: 'pufferfish', name: 'Reef Angelfish', rarity: 'Uncommon', mass: 6, population: 17,
+    ...FISH_MODELS.uncommon, hint: 'A few visit Common waters. Find more in Uncommon at size 100.' },
+  { id: 'bigeye-tuna', name: 'Red Reef Fish', rarity: 'Rare', mass: 18, population: 4,
+    ...FISH_MODELS.rare, hint: 'An occasional Common visitor. More appear in Uncommon waters.' },
   { id: 'potato-grouper', name: 'Coming Soon', rarity: 'Epic', mass: 36, population: 0,
     ...FISH_MODELS.rare, hint: 'Coming soon.' },
   { id: 'blacktip-reef-shark', name: 'Hammerhead Shark', rarity: 'Secret', mass: SHARK_RULES.startValue, population: 1,

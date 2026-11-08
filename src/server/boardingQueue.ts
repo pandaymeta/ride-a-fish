@@ -5,7 +5,7 @@ import { Arena } from './arena'
 // Server-only FIFO reservations; each berth has one owner and prefers the lowest free index.
 export class BoardingQueue {
   private waiting: string[] = []
-  constructor(private arena: Arena) {}
+  constructor(private arena: Arena, private parkedMass: (owner: string) => number = () => 1) {}
 
   join(owner: string): void {
     if (!this.arena.getMount(owner) && !this.waiting.includes(owner)) this.waiting.push(owner)
@@ -30,7 +30,7 @@ export class BoardingQueue {
       const index = this.waiting.findIndex(address => present.has(address))
       if (index < 0) break
       const owner = this.waiting[index]
-      if (!this.arena.reserve(owner, slot)) break
+      if (!this.arena.reserve(owner, slot, this.parkedMass(owner))) break
       this.waiting.splice(index, 1)
       this.status(owner)
     }
