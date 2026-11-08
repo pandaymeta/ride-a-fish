@@ -205,6 +205,8 @@ The sample has 50 green food pickups. Common has 20 worth +1 size each. Uncommon
 
 Coins stay saved between visits. V1 adds a shop where players spend these coins. The shop's items and prices are TBD; it is outside the V0 playable scope.
 
+V1 also adds a leaderboard. Its scoring and display are TBD; it is outside the V0 playable scope.
+
 | Area | NPC fish | Size gained on catch | Slots |
 |---|---|---:|---:|
 | Common | Blue Tang — Common | 2 | 16 |
@@ -243,6 +245,7 @@ Use playtests and the program dashboard. No separate return tracker is planned.
 **Later V1 checks**
 
 - Check purchases deduct the right number of coins and the saved balance is correct after rejoining.
+- Check leaderboard results and ordering against the agreed scoring rules once defined.
 - Test each size gate just below and exactly at its limit.
 - Check that base rarity rows total 100%. Test friend counts from 0 to 20. Both boosted rarities must gain chance.
 - Keep each area's matching rarity highest after the friend bonus.

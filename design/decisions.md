@@ -85,3 +85,9 @@
 - **Owner request:** Commit and push the pending scene changes and revised GDD to GitHub.
 - **Repository sync:** Gameplay source matches the Creator Hub project, apart from whitespace-only differences. Include its current scene settings and authored layout. Preserve the local-asset manifest and existing exclusions for locally supplied assets.
 - **Documentation:** The GDD now reports the republish; public save/rejoin verification remains pending. V0 scope and later V1 Mythic hunts and coin shop remain as agreed.
+
+## 8 November 2026 — Include the leaderboard and shop in V1
+
+- **Owner clarification:** V1 builds both a leaderboard and the coin shop. Remove leaderboards from the V1 cut list; keep the shop already included in the scope.
+- **Open details:** Leaderboard scoring and display, plus shop items and prices, remain TBD. No ranking metric or shop item type is chosen by this edit.
+- **Saved changes:** Updated the V1 scope, week plan, cut list, and appendix checks. V0 stays focused on the core ride and chase loop. Documents only; no game implementation or publication.

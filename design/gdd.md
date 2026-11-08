@@ -193,14 +193,14 @@ With 2–4 riders, test boarding and prey/predator clarity, voluntary repeat rid
 
 V1 will build Mythic spawning, the server-wide alert, and a single confirmed winner per fish. Test whether players change routes to join the hunt and choose another ride afterward. Excitement and repeat play are goals to verify.
 
-V1 also includes a coin shop, six populated rarity areas, a nearly complete Fish Index, 20 players, UTC species rotations, and friend-based Legendary/Mythic spawn bonuses. Shop items, prices, species count, and tuning: TBD. Size gates and catch-size rules still apply. Details: [Progression appendix](gdd-progression-appendix.md).
+V1 also includes a coin shop, a leaderboard, six populated rarity areas, a nearly complete Fish Index, 20 players, UTC species rotations, and friend-based Legendary/Mythic spawn bonuses. Shop items and prices, leaderboard scoring and display, species count, and tuning: TBD. Size gates and catch-size rules still apply. Details: [Progression appendix](gdd-progression-appendix.md).
 
 | Week | What is playable / done |
 |---|---|
-| 1 — Prototype definition | Confirm the V1 roster, growth plan, and shop items/prices; resolve V0 playtest issues. |
+| 1 — Prototype definition | Confirm the V1 roster, growth plan, shop items/prices, and leaderboard rules; resolve V0 playtest issues. |
 | 2 — Core interaction + first-group test | Populate all six areas; test fish mix and gates. Prototype a Mythic spawn and server-wide alert. |
-| 3 — Core systems refinement | Test shared Mythic hunts and one winner per fish. Add the coin shop; complete most species, rotations, friend bonuses, and 20-player capacity. |
-| 4 — Playable release, including testing and deployment | Observe hunt participation, chases, and repeat rides. Check purchases, saves, collection, and 20-player desktop/mobile performance; publish V1. |
+| 3 — Core systems refinement | Test shared Mythic hunts and one winner per fish. Add the coin shop and leaderboard; complete most species, rotations, friend bonuses, and 20-player capacity. |
+| 4 — Playable release, including testing and deployment | Observe hunt participation, chases, and repeat rides. Check purchases, leaderboard results, saves, collection, and 20-player desktop/mobile performance; publish V1. |
 
 **What keeps the experience changing after launch.**
 
@@ -212,8 +212,7 @@ V1 also includes a coin shop, six populated rarity areas, a nearly complete Fish
 **Not building in v1.**
 
 1. Areas beyond the six rarity areas.
-2. Leaderboards.
-3. Rebirth, trading, and formal crews.
+2. Rebirth, trading, and formal crews.
 
 **Top risk + fallback.**
 
