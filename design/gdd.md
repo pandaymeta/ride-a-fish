@@ -193,7 +193,7 @@ With 2–4 riders, test boarding and prey/predator clarity, voluntary repeat rid
 
 V1 will build Mythic spawning, the server-wide alert, and a single confirmed winner per fish. Test whether players change routes to join the hunt and choose another ride afterward. Excitement and repeat play are goals to verify.
 
-V1 also includes a coin shop, a leaderboard, six populated rarity areas, a nearly complete Fish Index, 20 players, UTC species rotations, and friend-based Legendary/Mythic spawn bonuses. Shop items and prices, leaderboard scoring and display, species count, and tuning: TBD. Size gates and catch-size rules still apply. Details: [Progression appendix](gdd-progression-appendix.md).
+V1 also includes a coin shop, a leaderboard, six populated rarity areas, a nearly complete Fish Index, 20 players, UTC species rotations, and friend-based Legendary/Mythic spawn bonuses. Shop items and prices, leaderboard scoring and display, species count, and tuning: TBD. Size gates and catch-size rules still apply.
 
 | Week | What is playable / done |
 |---|---|

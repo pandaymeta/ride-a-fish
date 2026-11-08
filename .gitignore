@@ -24,3 +24,8 @@ dist/
 /assets/Models/ride-a-fish-pack/
 /assets/Models/unity-sand-dune-shore-uv.glb
 /assets/Images/tai-shore-foam-frames-[0-3].png
+
+# Local design working notes; the grant GDD is design/gdd.md
+/design/references.md
+/design/decisions.md
+/design/gdd-progression-appendix.md
